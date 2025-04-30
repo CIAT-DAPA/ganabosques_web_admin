@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h1>Bienvenido a GanaBosques Web Admin</h1>
+        <p class="lead">Selecciona una opción administrativa para continuar.</p>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ url_for('upload_file') }}" class="text-decoration-none">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        📥 Importar Archivos
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    🔧 Gestión Usuarios
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    🗺️ Mapas y Capas
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    📊 Reportes
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
