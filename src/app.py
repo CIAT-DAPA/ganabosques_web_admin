@@ -8,6 +8,8 @@ from mongoengine import connect
 from routes.home import home_bp
 from ganabosques_orm.collections.enterprise import Enterprise
 from ganabosques_orm.collections.farm import Farm
+from ganabosques_orm.collections.suppliers import Suppliers
+from ganabosques_orm.auxiliaries.years import Years
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
@@ -29,8 +31,13 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def extract_codigos_from_csv(file_stream):
-    reader = csv.DictReader(file_stream.read().decode('utf-8').splitlines())
-    return [row['codigo_sit'].strip() for row in reader if row['codigo_sit'].strip()]
+    lines = file_stream.read().decode('utf-8').splitlines()
+    codigos = [line.strip() for line in lines if line.strip()]
+    
+    if not codigos:
+        raise ValueError("El archivo está vacío o no contiene códigos válidos.")
+
+    return codigos
 
 @app.route('/importar', methods=['GET', 'POST'])
 def upload_file():
@@ -76,10 +83,42 @@ def importar_proveedores():
             flash("Debes seleccionar una empresa y subir un archivo CSV", 'danger')
             return redirect(request.url)
 
-        codigos = extract_codigos_from_csv(archivo)
+        try:
+            codigos = extract_codigos_from_csv(archivo)
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return redirect(request.url)
+
         codigos_encontrados = Farm.objects(ext_id__ext_code__in=codigos).distinct('ext_id.ext_code')
         encontrados = list(set(codigos_encontrados))
         no_encontrados = list(set(codigos) - set(encontrados))
+
+        # Guardar en Suppliers
+        enterprise = Enterprise.objects.get(id=empresa_id)
+        farms = Farm.objects(ext_id__ext_code__in=encontrados)
+        nuevos = 0
+        actualizados = 0
+
+        for farm in farms:
+            supplier = Suppliers.objects(enterprise_id=enterprise.id, farm_id=farm.id).first()
+            nuevos_anios = [Years(years=a) for a in anios_seleccionados]
+
+            if not supplier:
+                Suppliers(
+                    enterprise_id=enterprise.id,
+                    farm_id=farm.id,
+                    years=nuevos_anios
+                ).save()
+                nuevos += 1
+            else:
+                existentes = set(y.years for y in supplier.years)
+                nuevos_uniq = [Years(years=a) for a in anios_seleccionados if a not in existentes]
+                if nuevos_uniq:
+                    supplier.years.extend(nuevos_uniq)
+                    supplier.save()
+                    actualizados += 1
+
+        flash(f"Proveedores guardados: {nuevos} nuevos, {actualizados} actualizados.", 'success')
 
         return render_template('import_suppliers.html', empresas=empresas, anios=anios,
                                encontrados=encontrados, no_encontrados=no_encontrados,
