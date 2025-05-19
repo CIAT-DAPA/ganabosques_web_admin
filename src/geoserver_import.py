@@ -1,4 +1,5 @@
 import os
+import tempfile
 from tools import GeoserverClient
 
 geo_url = "http://localhost:8080/geoserver/rest/"
@@ -7,7 +8,7 @@ geo_pwd = os.getenv("GEOSERVER_PWD")
 path_file = os.path.abspath(__file__)
 path_file = os.path.dirname(path_file)
 folder_properties = os.path.join(path_file, "data", "layers", "mosaic_properties")
-folder_tmp = "C:/temp/ganabosques_tmp"
+folder_tmp = os.path.join(tempfile.gettempdir(), "ganabosques_tmp")
 os.makedirs(folder_tmp, exist_ok=True)
 
 WORKSPACE_STORE_CONFIG = {
