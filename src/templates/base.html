@@ -108,10 +108,10 @@
             <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home.home') }}">
                 🏠 <span>Inicio</span>
             </a>
-            <a class="nav-link {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('upload_file') }}">
+            <a class="nav-link {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}">
                 📥 <span>Importar Archivos</span>
             </a>
-            <a class="nav-link {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('importar_proveedores') }}">
+            <a class="nav-link {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}">
                 🧾 <span>Importar Proveedores</span>
             </a>
             <a class="nav-link" href="#">
@@ -134,8 +134,8 @@
         <div class="offcanvas-body bg-dark">
             <nav class="nav flex-column">
                 <a class="nav-link text-white {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home.home') }}">🏠 Home</a>
-                <a class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('upload_file') }}">📥 Importar Archivos</a>
-                <a class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('importar_proveedores') }}">🧾 Importar Proveedores</a>
+                <a class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}">📥 Importar Archivos</a>
+                <a class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}">🧾 Importar Proveedores</a>
                 <a class="nav-link text-white" href="#">🔧 Gestión Usuarios</a>
                 <a class="nav-link text-white" href="#">🗺️ Mapas y Capas</a>
                 <a class="nav-link text-white" href="#">📊 Reportes</a>
