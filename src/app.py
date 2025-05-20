@@ -10,14 +10,17 @@ from ganabosques_orm.collections.enterprise import Enterprise
 from ganabosques_orm.collections.farm import Farm
 from ganabosques_orm.collections.suppliers import Suppliers
 from ganabosques_orm.auxiliaries.years import Years
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'
+load_dotenv()
+app.secret_key = os.getenv("SECRET_KEY", "dev_default")
 
 # Allowed file types
 ALLOWED_EXTENSIONS = {'shp', 'tif', 'tiff', 'csv', 'xls', 'xlsx'}
-UPLOAD_FOLDER = 'uploaded_files'
-CSV_FOLDER = 'uploaded_codes'
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploaded_files')
+CSV_FOLDER = os.path.join(BASE_DIR, 'uploaded_codes')
 
 # Create upload folders if they don't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -130,5 +133,10 @@ def importar_proveedores():
 app.register_blueprint(home_bp)
 
 if __name__ == '__main__':
-    connect(host="mongodb://localhost:27017/ganabosques")
+    # Connect to MongoDB
+    # Ensure the environment variables are set
+    connect(
+        db=os.getenv("MONGO_DB_NAME", "ganabosques"),
+        host=os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    )
     app.run(debug=True, host='0.0.0.0')

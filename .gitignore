@@ -7,7 +7,7 @@ ENV/
 .python-version
 
 # Archivos de configuración de entorno
-*.env
+.env
 *.env.*
 
 # Archivos Python compilados
