@@ -2,8 +2,11 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash
 import os
 import traceback
 from geoserver_import import upload_to_geoserver
+from config import config  # Importa tu configuración centralizada
 
-ALLOWED_EXTENSIONS = {'shp', 'tif', 'tiff', 'csv', 'xls', 'xlsx'}
+ALLOWED_EXTENSIONS = config['ALLOWED_EXTENSIONS']
+UPLOAD_FOLDER = config['UPLOAD_FOLDER']
+
 spatial_bp = Blueprint('spatial', __name__)
 
 # Check if the file has an allowed extension
@@ -12,8 +15,6 @@ def allowed_file(filename):
 
 @spatial_bp.route('/importar', methods=['GET', 'POST'])
 def upload_file():
-    from app import app  # import local app context to access config
-
     if request.method == 'POST':
         file_type = request.form.get('file_type')
         file = request.files.get('file')
@@ -24,8 +25,17 @@ def upload_file():
 
         if file and allowed_file(file.filename):
             filename = file.filename
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+            # Asegurar que la carpeta exista
+            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+            try:
+                file.save(filepath)
+            except Exception as save_error:
+                traceback.print_exc()
+                flash(f"Error al guardar el archivo: {save_error}")
+                return redirect(request.url)
 
             try:
                 upload_to_geoserver(filepath, file_type)

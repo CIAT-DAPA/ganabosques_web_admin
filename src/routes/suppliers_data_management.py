@@ -1,10 +1,10 @@
-
 from flask import Blueprint, request, render_template, redirect, flash
 from datetime import datetime
 from ganabosques_orm.collections.enterprise import Enterprise
 from ganabosques_orm.collections.farm import Farm
 from ganabosques_orm.collections.suppliers import Suppliers
 from ganabosques_orm.auxiliaries.years import Years
+from config import config
 
 suppliers_bp = Blueprint('suppliers', __name__)
 
@@ -22,7 +22,7 @@ def importar_proveedores():
     empresas = Enterprise.objects.only('id', 'name')
     anios = list(range(2013, datetime.now().year + 1))
     encontrados, no_encontrados = [], []
-    
+
     if request.method == 'POST':
         empresa_id = request.form.get('empresa_id')
         anios_seleccionados = request.form.getlist('anios')
