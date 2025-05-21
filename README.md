@@ -20,7 +20,7 @@
 - **Docker** – Para levantar servicios como GeoServer y MongoDB
 
 ## 📁 Estructura del proyecto
-
+```bash
 ganabosques_web_admin/
 │
 ├── src/
@@ -53,24 +53,30 @@ ganabosques_web_admin/
 ├── requirements.txt # Lista de dependencias
 ├── .env # Variables de entorno (no subir)
 └── README.md
-
+```
 ## 🚀 Instalación y ejecución local
-###1. Clona el repositorio
-git clone https://github.com/CIAT-DAPA/ganabosques_web_admin.git
-cd ganabosques_web_admin
-
-###2.Crea entorno virtual (opcional pero recomendado)
-python -m venv env
-source env/bin/activate        # En Linux/macOS
-env\Scripts\activate           # En Windows
-
-###3.Instala las dependencias
-pip install -r requirements.txt
-
-###4.Crea el archivo .env
-cp .env.example .env    # o créalo manualmente con las variables necesarias
-
-###5.Inicia la aplicación
-cd src
-python app.py
-Accede a: http://localhost:5000
+- 1. Clona el repositorio
+  ```bash
+  git clone https://github.com/CIAT-DAPA/ganabosques_web_admin.git
+  cd ganabosques_web_admin
+  ```
+- 2.Crea entorno virtual (opcional pero recomendado)
+  ```bash
+  python -m venv env
+  source env/bin/activate        # En Linux/macOS
+  env\Scripts\activate           # En Windows
+  ```
+- 3.Instala las dependencias
+  ```bash
+  pip install -r requirements.txt
+  ```
+- 4.Crea el archivo .env
+  ```bash
+  cp .env.example .env    # o créalo manualmente con las variables necesarias
+  ```
+- 5.Inicia la aplicación
+  ```bash
+  cd src
+  python app.py
+  Accede a: http://localhost:5000
+  ```
