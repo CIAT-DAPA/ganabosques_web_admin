@@ -55,26 +55,26 @@ ganabosques_web_admin/
 └── README.md
 ```
 ## 🚀 Instalación y ejecución local
-- 1. Clona el repositorio
+-  Clona el repositorio
   ```bash
   git clone https://github.com/CIAT-DAPA/ganabosques_web_admin.git
   cd ganabosques_web_admin
   ```
-- 2.Crea entorno virtual (opcional pero recomendado)
+-  Crea entorno virtual (opcional pero recomendado)
   ```bash
   python -m venv env
   source env/bin/activate        # En Linux/macOS
   env\Scripts\activate           # En Windows
   ```
-- 3.Instala las dependencias
+-  Instala las dependencias
   ```bash
   pip install -r requirements.txt
   ```
-- 4.Crea el archivo .env
+-  Crea el archivo .env
   ```bash
   cp .env.example .env    # o créalo manualmente con las variables necesarias
   ```
-- 5.Inicia la aplicación
+-  Inicia la aplicación
   ```bash
   cd src
   python app.py
