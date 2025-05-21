@@ -17,15 +17,36 @@
                 {% endif %}
             {% endwith %}
 
-            <!-- Formulario con selección de tipo de archivo -->
+            <!-- Formulario -->
             <form method="post" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label class="form-label">Selecciona el tipo de archivo:</label>
-                    <select class="form-select" name="file_type" required>
+                    <select class="form-select" name="file_type" id="file_type" required>
                         <option value="">-- Selecciona Tipo --</option>
                         <option value="deforestation">Deforestación anual</option>
                         <option value="administrative_risk">Riesgo administrativo anual</option>
                     </select>
+                </div>
+
+                <!-- Campo visible solo si el tipo es deforestation -->
+                <div id="extra-fields" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Fuente:</label>
+                        <select class="form-select" name="source">
+                            <option value="">-- Selecciona Fuente --</option>
+                            <option value="smbyc">SMByC</option>
+                            <option value="gfw">Global Forest Watch</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Año:</label>
+                        <select class="form-select" name="year">
+                            {% for y in range(2013, current_year + 1) %}
+                                <option value="{{ y }}">{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -38,4 +59,20 @@
         </div>
     </div>
 </div>
+
+<!-- Mostrar campos condicionales -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tipoSelect = document.getElementById("file_type");
+        const extraFields = document.getElementById("extra-fields");
+
+        tipoSelect.addEventListener("change", function () {
+            if (this.value === "deforestation") {
+                extraFields.style.display = "block";
+            } else {
+                extraFields.style.display = "none";
+            }
+        });
+    });
+</script>
 {% endblock %}

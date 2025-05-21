@@ -1,15 +1,16 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 import os
 import traceback
+from datetime import datetime
 from geoserver_import import upload_to_geoserver
-from config import config  # Importa tu configuración centralizada
+from config import config
 
 ALLOWED_EXTENSIONS = config['ALLOWED_EXTENSIONS']
 UPLOAD_FOLDER = config['UPLOAD_FOLDER']
 
 spatial_bp = Blueprint('spatial', __name__)
 
-# Check if the file has an allowed extension
+# Validar si la extensión es permitida
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -19,15 +20,25 @@ def upload_file():
         file_type = request.form.get('file_type')
         file = request.files.get('file')
 
+        # Campos adicionales solo para deforestation
+        source = request.form.get('source')
+        year = request.form.get('year')
+
         if not file or file.filename == '':
             flash('No se seleccionó ningún archivo.')
             return redirect(request.url)
 
         if file and allowed_file(file.filename):
-            filename = file.filename
-            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            # Renombrar si es deforestación anual
+            if file_type == 'deforestation':
+                if not source or not year:
+                    flash("Debes seleccionar una fuente y año para deforestación.", "danger")
+                    return redirect(request.url)
+                filename = f"{source}_deforestation_annual_{year}.tiff"
+            else:
+                filename = file.filename
 
-            # Asegurar que la carpeta exista
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
             os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
             try:
@@ -49,4 +60,5 @@ def upload_file():
             flash('Tipo de archivo no permitido.')
             return redirect(request.url)
 
-    return render_template('upload.html', active_page='importar')
+    # Render con año actual para desplegable
+    return render_template('upload.html', active_page='importar', current_year=datetime.now().year)
