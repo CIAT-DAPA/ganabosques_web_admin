@@ -14,6 +14,7 @@ if os.getenv('DEBUG', 'true').lower() == 'true':
     config['MONGO_DB_NAME'] = 'ganabosques'
     config['GEOSERVER_USER'] = 'admin'
     config['GEOSERVER_PWD'] = 'geoserver'
+    config['GEOSERVER_URL'] = 'http://localhost:8080/geoserver/rest/'
 
 else:
     # Parámetros desde variables de entorno para producción
@@ -26,6 +27,7 @@ else:
     config['MONGO_DB_NAME'] = os.getenv('MONGO_DB_NAME')
     config['GEOSERVER_USER'] = os.getenv('GEOSERVER_USER')
     config['GEOSERVER_PWD'] = os.getenv('GEOSERVER_PWD')
+    config['GEOSERVER_URL'] = os.getenv('GEOSERVER_URL')
 
 # Rutas de carpetas usadas en la app
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))

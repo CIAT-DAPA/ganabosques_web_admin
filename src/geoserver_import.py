@@ -1,11 +1,12 @@
 import os
 import tempfile
 from tools import GeoserverClient
+from config import config
 
 # Leer credenciales desde variables de entorno
-geo_url = "http://localhost:8080/geoserver/rest/"
-geo_user = os.getenv("GEOSERVER_USER")
-geo_pwd = os.getenv("GEOSERVER_PWD")
+geo_url = config['GEOSERVER_URL']
+geo_user = config['GEOSERVER_USER']
+geo_pwd = config['GEOSERVER_PWD']
 
 # Validación de credenciales
 if not geo_user or not geo_pwd:
