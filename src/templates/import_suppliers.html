@@ -33,7 +33,7 @@
                         <div class="row row-cols-2 row-cols-md-4 g-2">
                             {% for anio in anios %}
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="anios[]" id="anio{{ anio }}" value="{{ anio }}"
+                                    <input class="form-check-input" type="checkbox" name="anios" id="anio{{ anio }}" value="{{ anio }}"
                                         {% if anio|string in selected_anios %}checked{% endif %}>
                                     <label class="form-check-label" for="anio{{ anio }}">
                                         {{ anio }}

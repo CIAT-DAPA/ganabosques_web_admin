@@ -4,11 +4,12 @@ from ganabosques_orm.collections.enterprise import Enterprise
 from ganabosques_orm.collections.farm import Farm
 from ganabosques_orm.collections.suppliers import Suppliers
 from ganabosques_orm.auxiliaries.years import Years
+from ganabosques_orm.auxiliaries.log import Log
 from config import config
 
 suppliers_bp = Blueprint('suppliers', __name__)
 
-# Extract codes from CSV line-by-line
+# Función auxiliar para extraer códigos desde el archivo CSV
 def extract_codigos_from_csv(file_stream):
     lines = file_stream.read().decode('utf-8').splitlines()
     codigos = [line.strip() for line in lines if line.strip()]
@@ -16,7 +17,7 @@ def extract_codigos_from_csv(file_stream):
         raise ValueError("El archivo está vacío o no contiene códigos válidos.")
     return codigos
 
-# Route to import suppliers
+# Ruta para importar proveedores
 @suppliers_bp.route('/importar_proveedores', methods=['GET', 'POST'])
 def importar_proveedores():
     empresas = Enterprise.objects.only('id', 'name')
@@ -28,6 +29,7 @@ def importar_proveedores():
         anios_seleccionados = request.form.getlist('anios')
         archivo = request.files.get('archivo')
 
+        # Validación básica de entrada
         if not empresa_id or not archivo:
             flash("Debes seleccionar una empresa y subir un archivo CSV", 'danger')
             return redirect(request.url)
@@ -38,28 +40,42 @@ def importar_proveedores():
             flash(str(e), 'danger')
             return redirect(request.url)
 
-        codigos_encontrados = Farm.objects(ext_id__ext_code__in=codigos).distinct('ext_id.ext_code')
-        encontrados = list(set(codigos_encontrados))
+        # Buscar fincas cuyo ext_code coincida con algún código importado
+        farms = Farm.objects(ext_id__ext_code__in=codigos)
+        encontrados = [ext.ext_code for farm in farms for ext in farm.ext_id if ext.ext_code in codigos]
         no_encontrados = list(set(codigos) - set(encontrados))
 
+        # Obtener la empresa seleccionada
         enterprise = Enterprise.objects.get(id=empresa_id)
-        farms = Farm.objects(ext_id__ext_code__in=encontrados)
         nuevos, actualizados = 0, 0
 
         for farm in farms:
+            # Buscar si ya existe un documento Supplier para esta empresa y finca
             supplier = Suppliers.objects(enterprise_id=enterprise.id, farm_id=farm.id).first()
-            nuevos_anios = [Years(years=a) for a in anios_seleccionados]
+
+            # Crear lista de nuevos años como documentos embebidos correctamente
+            nuevos_anios = []
+            for a in anios_seleccionados:
+                y = Years()
+                y.years = str(a)
+                nuevos_anios.append(y)
 
             if not supplier:
                 Suppliers(
                     enterprise_id=enterprise.id,
                     farm_id=farm.id,
-                    years=nuevos_anios
+                    years=nuevos_anios,
+                    log=Log(enable=True)
                 ).save()
                 nuevos += 1
             else:
                 existentes = set(y.years for y in supplier.years)
-                nuevos_uniq = [Years(years=a) for a in anios_seleccionados if a not in existentes]
+                nuevos_uniq = []
+                for a in anios_seleccionados:
+                    if str(a) not in existentes:
+                        y = Years()
+                        y.years = str(a)
+                        nuevos_uniq.append(y)
                 if nuevos_uniq:
                     supplier.years.extend(nuevos_uniq)
                     supplier.save()
