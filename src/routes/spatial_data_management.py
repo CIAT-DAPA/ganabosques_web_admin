@@ -34,7 +34,7 @@ def upload_file():
                 if not source or not year:
                     flash("Debes seleccionar una fuente y año para deforestación.", "danger")
                     return redirect(request.url)
-                filename = f"{source}_deforestation_annual_{year}.tiff"
+                filename = f"{source}_{year}.tiff"
             else:
                 filename = file.filename
 

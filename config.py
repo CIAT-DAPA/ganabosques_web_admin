@@ -14,7 +14,7 @@ if os.getenv('DEBUG', 'true').lower() == 'true':
     config['MONGO_DB_NAME'] = 'ganabosques'
     config['GEOSERVER_USER'] = 'admin'
     config['GEOSERVER_PWD'] = 'geoserver'
-    config['GEOSERVER_URL'] = 'http://localhost:8080/geoserver/rest/'
+    config['GEOSERVER_URL'] = 'http://localhost:8600/geoserver/rest/'
 
 else:
     # Parámetros desde variables de entorno para producción
