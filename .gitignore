@@ -6,6 +6,10 @@ ENV/
 .env/
 .python-version
 
+# Data
+data/
+geoserver/
+
 # Archivos de configuración de entorno
 .env
 *.env.*
