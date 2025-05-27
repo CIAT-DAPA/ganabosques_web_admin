@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, flash
+from flask import Blueprint, request, render_template, redirect, flash, make_response
 from datetime import datetime
 from ganabosques_orm.collections.enterprise import Enterprise
 from ganabosques_orm.collections.farm import Farm
@@ -6,6 +6,8 @@ from ganabosques_orm.collections.suppliers import Suppliers
 from ganabosques_orm.auxiliaries.years import Years
 from ganabosques_orm.auxiliaries.log import Log
 from config import config
+import csv
+import io
 
 suppliers_bp = Blueprint('suppliers', __name__)
 
@@ -16,6 +18,32 @@ def extract_codigos_from_csv(file_stream):
     if not codigos:
         raise ValueError("El archivo está vacío o no contiene códigos válidos.")
     return codigos
+
+# Función para generar un archivo CSV desde una lista de códigos
+def generate_csv_response(filename, lista_codigos):
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['codigo'])  # encabezado
+    for codigo in lista_codigos:
+        writer.writerow([codigo])
+    output.seek(0)
+
+    response = make_response(output.getvalue())
+    response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+    response.headers['Content-Type'] = 'text/csv'
+    return response
+
+# Ruta para descargar los códigos encontrados
+@suppliers_bp.route('/descargar_encontrados', methods=['POST'])
+def descargar_encontrados():
+    encontrados = request.form.getlist('encontrados[]')
+    return generate_csv_response('codigos_encontrados.csv', encontrados)
+
+# Ruta para descargar los códigos no encontrados
+@suppliers_bp.route('/descargar_no_encontrados', methods=['POST'])
+def descargar_no_encontrados():
+    no_encontrados = request.form.getlist('no_encontrados[]')
+    return generate_csv_response('codigos_no_encontrados.csv', no_encontrados)
 
 # Ruta para importar proveedores
 @suppliers_bp.route('/importar_proveedores', methods=['GET', 'POST'])
@@ -29,7 +57,6 @@ def importar_proveedores():
         anios_seleccionados = request.form.getlist('anios')
         archivo = request.files.get('archivo')
 
-        # Validación básica de entrada
         if not empresa_id or not archivo:
             flash("Debes seleccionar una empresa y subir un archivo CSV", 'danger')
             return redirect(request.url)
@@ -40,25 +67,16 @@ def importar_proveedores():
             flash(str(e), 'danger')
             return redirect(request.url)
 
-        # Buscar fincas cuyo ext_code coincida con algún código importado
         farms = Farm.objects(ext_id__ext_code__in=codigos)
         encontrados = [ext.ext_code for farm in farms for ext in farm.ext_id if ext.ext_code in codigos]
         no_encontrados = list(set(codigos) - set(encontrados))
 
-        # Obtener la empresa seleccionada
         enterprise = Enterprise.objects.get(id=empresa_id)
         nuevos, actualizados = 0, 0
 
         for farm in farms:
-            # Buscar si ya existe un documento Supplier para esta empresa y finca
             supplier = Suppliers.objects(enterprise_id=enterprise.id, farm_id=farm.id).first()
-
-            # Crear lista de nuevos años como documentos embebidos correctamente
-            nuevos_anios = []
-            for a in anios_seleccionados:
-                y = Years()
-                y.years = str(a)
-                nuevos_anios.append(y)
+            nuevos_anios = [Years(years=str(a)) for a in anios_seleccionados]
 
             if not supplier:
                 Suppliers(
@@ -70,12 +88,7 @@ def importar_proveedores():
                 nuevos += 1
             else:
                 existentes = set(y.years for y in supplier.years)
-                nuevos_uniq = []
-                for a in anios_seleccionados:
-                    if str(a) not in existentes:
-                        y = Years()
-                        y.years = str(a)
-                        nuevos_uniq.append(y)
+                nuevos_uniq = [Years(years=str(a)) for a in anios_seleccionados if str(a) not in existentes]
                 if nuevos_uniq:
                     supplier.years.extend(nuevos_uniq)
                     supplier.save()

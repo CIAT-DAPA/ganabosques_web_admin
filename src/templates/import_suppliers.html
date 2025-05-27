@@ -44,7 +44,6 @@
                     </div>
                 </div>
 
-
                 <div class="col-12">
                     <label for="archivo" class="form-label">Selecciona el archivo:</label>
                     <input type="file" name="archivo" id="archivo" class="form-control" accept=".csv" required>
@@ -62,20 +61,36 @@
     <div class="row">
         <div class="col-md-6">
             <h4 class="text-success">Códigos encontrados ({{ encontrados|length }})</h4>
-            <ul class="list-group">
+            <ul class="list-group mb-2">
                 {% for codigo in encontrados %}
                     <li class="list-group-item">{{ codigo }}</li>
                 {% endfor %}
             </ul>
+            {% if encontrados %}
+            <form method="POST" action="{{ url_for('suppliers.descargar_encontrados') }}">
+                {% for codigo in encontrados %}
+                    <input type="hidden" name="encontrados[]" value="{{ codigo }}">
+                {% endfor %}
+                <button class="btn btn-success w-100" type="submit">Descargar CSV</button>
+            </form>
+            {% endif %}
         </div>
 
         <div class="col-md-6">
             <h4 class="text-danger">Códigos no encontrados ({{ no_encontrados|length }})</h4>
-            <ul class="list-group">
+            <ul class="list-group mb-2">
                 {% for codigo in no_encontrados %}
                     <li class="list-group-item">{{ codigo }}</li>
                 {% endfor %}
             </ul>
+            {% if no_encontrados %}
+            <form method="POST" action="{{ url_for('suppliers.descargar_no_encontrados') }}">
+                {% for codigo in no_encontrados %}
+                    <input type="hidden" name="no_encontrados[]" value="{{ codigo }}">
+                {% endfor %}
+                <button class="btn btn-danger w-100" type="submit">Descargar CSV</button>
+            </form>
+            {% endif %}
         </div>
     </div>
     {% endif %}
