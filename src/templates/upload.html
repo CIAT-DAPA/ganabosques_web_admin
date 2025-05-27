@@ -6,7 +6,6 @@
         <div class="card-body">
             <h2 class="mb-3">Importar Archivos</h2>
 
-            <!-- Mensajes de feedback al usuario -->
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
                     <div class="alert alert-info">
@@ -17,8 +16,7 @@
                 {% endif %}
             {% endwith %}
 
-            <!-- Formulario -->
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" id="upload-form">
                 <div class="mb-3">
                     <label class="form-label">Selecciona el tipo de archivo:</label>
                     <select class="form-select" name="file_type" id="file_type" required>
@@ -28,24 +26,34 @@
                     </select>
                 </div>
 
-                <!-- Campo visible solo si el tipo es deforestation -->
+                <!-- Visible solo si se elige "deforestation" -->
                 <div id="extra-fields" style="display: none;">
                     <div class="mb-3">
                         <label class="form-label">Fuente:</label>
-                        <select class="form-select" name="source">
+                        <select class="form-select" name="source" required>
                             <option value="">-- Selecciona Fuente --</option>
                             <option value="smbyc">SMByC</option>
                             <option value="gfw">Global Forest Watch</option>
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Año:</label>
-                        <select class="form-select" name="year">
-                            {% for y in range(2013, current_year + 1) %}
-                                <option value="{{ y }}">{{ y }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Año inicio:</label>
+                            <select class="form-select" name="year_start" id="year_start" required>
+                                {% for y in range(2010, current_year + 1) %}
+                                    <option value="{{ y }}">{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Año fin:</label>
+                            <select class="form-select" name="year_end" id="year_end" required>
+                                {% for y in range(2010, current_year + 1) %}
+                                    <option value="{{ y }}">{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -60,17 +68,31 @@
     </div>
 </div>
 
-<!-- Mostrar campos condicionales -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const tipoSelect = document.getElementById("file_type");
         const extraFields = document.getElementById("extra-fields");
+        const form = document.getElementById("upload-form");
 
         tipoSelect.addEventListener("change", function () {
-            if (this.value === "deforestation") {
-                extraFields.style.display = "block";
-            } else {
-                extraFields.style.display = "none";
+            extraFields.style.display = this.value === "deforestation" ? "block" : "none";
+        });
+
+        form.addEventListener("submit", function (e) {
+            if (tipoSelect.value === "deforestation") {
+                const yearStart = parseInt(document.getElementById("year_start").value);
+                const yearEnd = parseInt(document.getElementById("year_end").value);
+
+                if (isNaN(yearStart) || isNaN(yearEnd)) {
+                    alert("Debes seleccionar ambos años.");
+                    e.preventDefault();
+                    return;
+                }
+
+                if (yearEnd <= yearStart) {
+                    alert("El año fin debe ser mayor que el año inicio.");
+                    e.preventDefault();
+                }
             }
         });
     });

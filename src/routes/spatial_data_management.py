@@ -22,7 +22,8 @@ def upload_file():
 
         # Campos adicionales solo para deforestation
         source = request.form.get('source')
-        year = request.form.get('year')
+        year_start = request.form.get('year_start')
+        year_end = request.form.get('year_end')
 
         if not file or file.filename == '':
             flash('No se seleccionó ningún archivo.')
@@ -31,10 +32,10 @@ def upload_file():
         if file and allowed_file(file.filename):
             # Renombrar si es deforestación anual
             if file_type == 'deforestation':
-                if not source or not year:
-                    flash("Debes seleccionar una fuente y año para deforestación.", "danger")
+                if not source or not year_start or not year_end:
+                    flash("Debes seleccionar fuente, año inicio y año fin para deforestación.", "danger")
                     return redirect(request.url)
-                filename = f"{source}_{year}.tiff"
+                filename = f"{source}_{year_start}-{year_end}.tiff"
             else:
                 filename = file.filename
 
@@ -60,5 +61,5 @@ def upload_file():
             flash('Tipo de archivo no permitido.')
             return redirect(request.url)
 
-    # Render con año actual para desplegable
+    # Render con año actual para desplegables
     return render_template('upload.html', active_page='importar', current_year=datetime.now().year)
