@@ -5,11 +5,7 @@ import glob
 import shutil
 from geoserver.catalog import Catalog
 from geoserver.resource import Coverage
-#import geoserver.util
 from geoserver.support import DimensionInfo
-
-# https://github.com/dimitri-justeau/gsconfig-py3
-
 
 class GeoserverClient(object):
 
@@ -48,15 +44,6 @@ class GeoserverClient(object):
 
     def get_store(self, store_name):
         if self.workspace:
-            """
-            store = self.catalog.get_store(store_name, self.workspace)
-            if store:
-                print("Store found")
-                return store
-            else:
-                print("Store not found:", store_name)
-                return None
-            """
             try:
                 store = self.catalog.get_store(store_name, self.workspace)
                 return store
@@ -71,7 +58,7 @@ class GeoserverClient(object):
         if os.path.exists(file) and os.path.exists(folder_properties):
 
             if os.path.exists(folder_tmp):
-                shutil. rmtree(folder_tmp)
+                shutil.rmtree(folder_tmp)
             os.mkdir(folder_tmp)
 
             props = glob.glob(os.path.join(folder_properties, '*.properties'))
@@ -117,19 +104,12 @@ class GeoserverClient(object):
         coverage = Coverage(self.catalog, store=store,
                             name=name, href=url, workspace=self.workspace)
         print("Get resource success")
-        # defined coverage type for this store geotiff
         coverage.supported_formats = ["GEOTIFF"]
-        # enable the time dimension
         timeInfo = DimensionInfo(name="time", enabled="true", presentation="LIST", resolution=None,
                                  units="ISO8601", unit_symbol=None)
         coverage.metadata = {
             "dirName": "f{store_name}_{store_name}", "time": timeInfo}
         self.catalog.save(coverage)
-        # add style to the layer created
-        # layer=cat.get_layer(store_name)
-        # style=cat.get_style(style_name)
-        # layer.default_style=style
-        # cat.save(layer)
         print("Time Dimension is enabled")
         print("Done Successfully!")
 
@@ -158,4 +138,15 @@ class GeoserverClient(object):
                 print("deleting folder:", file_path)
                 shutil.rmtree(file_path)
 
+    def create_shp_datastore(self, path, store_name, workspace):
+        if not self.catalog:
+            self.connect()
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Archivo no encontrado: {path}")
 
+        try:
+            self.catalog.create_featurestore(store_name, data=path, workspace=workspace)
+            print(f"Shapefile store '{store_name}' creado en workspace '{workspace}'")
+        except Exception as e:
+            print(f"Error al crear el shapefile store: {e}")
+            raise

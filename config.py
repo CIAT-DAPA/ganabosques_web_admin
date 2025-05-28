@@ -35,7 +35,7 @@ config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'uploaded_files')
 config['CSV_FOLDER'] = os.path.join(BASE_DIR, 'uploaded_codes')
 
 # Extensiones permitidas para archivos cargados
-config['ALLOWED_EXTENSIONS'] = {'shp', 'tif', 'tiff', 'csv', 'xls', 'xlsx'}
+config['ALLOWED_EXTENSIONS'] = {'shp', 'tif', 'tiff', 'csv', 'xls', 'xlsx', 'zip'}
 
 # Crear carpetas necesarias si no existen
 for folder in [config['UPLOAD_FOLDER'], config['CSV_FOLDER']]:
