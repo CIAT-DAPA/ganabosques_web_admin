@@ -8,6 +8,7 @@ from tools import GeoserverClient
 from config import config
 from ganabosques_orm.auxiliaries.log import Log
 from .adminlevel_data_management import importar_desde_csv
+import time
 
 # Configuración
 ALLOWED_EXTENSIONS = config['ALLOWED_EXTENSIONS']
@@ -33,7 +34,7 @@ def upload_file():
             file = request.files.get('file')
             level = request.form.get('level')
             
-            if file.filename.lower().endswith('.csv'):
+            if not file.filename.lower().endswith('.csv'):
                 flash('El archivo debe ser un CSV.')
                 return redirect(request.url)
 
@@ -43,8 +44,11 @@ def upload_file():
                     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
                     file.save(filepath)
                     try: 
+                        start = time.time()
                         importar_desde_csv(filepath, level)
                         os.remove(filepath)
+                        end = time.time()
+                        print(f"Tiempo total: {end - start:.2f} segundos")
                     except Exception as e:
                         traceback.print_exc()
                         flash(f'Error durante la importacion de datos: {e}')

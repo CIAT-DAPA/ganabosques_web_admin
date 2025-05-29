@@ -1,12 +1,11 @@
 from xml.etree.ElementTree import ParseError
-from flask import Blueprint, request, render_template, redirect, flash, make_response
 from datetime import datetime
 import pandas as pd
 from ganabosques_orm.collections.adm1 import Adm1
 from ganabosques_orm.collections.adm2 import Adm2
 from ganabosques_orm.collections.adm3 import Adm3
 from ganabosques_orm.auxiliaries.log import Log
-from mongoengine import connect
+import math
 
 def importar_desde_csv(path, nivel='todo'):
 
@@ -59,7 +58,7 @@ def get_log():
 
 
 def procesar_fila_departamento(row):
-    ext_id = str(row['COD_DEPARTAMENTO'])
+    ext_id = convert_id(row['COD_DEPARTAMENTO'])
     name = row['NOMBRE_DEPARTAMENTO']
 
     if not ext_id or pd.isna(ext_id):
@@ -76,8 +75,8 @@ def procesar_fila_departamento(row):
         print(f"Departamento {ext_id} creado con nombre '{name}'.")
 
 def procesar_fila_municipio(row):
-    cod_dep = str(row['COD_DEPARTAMENTO'])
-    cod_mpio = str(row['COD_MUNICIPIO'])
+    cod_dep = convert_id(row['COD_DEPARTAMENTO'])
+    cod_mpio = convert_id(row['COD_MUNICIPIO'])
     nombre_mpio = row['NOMBRE_MUNICIPIO']
 
     if not cod_dep or pd.isna(cod_dep):
@@ -92,7 +91,7 @@ def procesar_fila_municipio(row):
     
     adm1 = Adm1.objects(ext_id=cod_dep).first()
     if not adm1:
-        print(f"Departamento {cod_dep} no existe. Municipio {cod_mpio} no se crea.")
+        print(f"Departamento {cod_dep} no existe. Municipio {cod_mpio} '{nombre_mpio}' no se crea.")
         return
     if Adm2.objects(ext_id=cod_mpio).first():
         print(f"Municipio {cod_mpio} {nombre_mpio} ya existe. No se crea de nuevo.")
@@ -101,8 +100,8 @@ def procesar_fila_municipio(row):
         print(f"Municipio {cod_mpio} creado con nombre '{nombre_mpio}'.")
 
 def procesar_fila_vereda(row):
-    cod_mpio = str(row['COD_MUNICIPIO'])
-    cod_vereda = str(row['COD_VEREDA'])
+    cod_mpio = convert_id(row['COD_MUNICIPIO'])
+    cod_vereda = convert_id(row['COD_VEREDA'])
     nombre_vereda = row['NOMBRE_VEREDA']
 
     if not cod_mpio or pd.isna(cod_mpio):
@@ -117,7 +116,7 @@ def procesar_fila_vereda(row):
 
     adm2 = Adm2.objects(ext_id=cod_mpio).first()
     if not adm2:
-        print(f"Municipio {cod_mpio} no existe. Vereda {cod_vereda} no se crea.")
+        print(f"Municipio {cod_mpio} no existe. Vereda {cod_vereda} '{nombre_vereda}' no se crea.")
         return
 
     if Adm3.objects(ext_id=cod_vereda).first():
@@ -126,10 +125,10 @@ def procesar_fila_vereda(row):
         Adm3(name=nombre_vereda, ext_id=cod_vereda, adm2_id=adm2, log=get_log()).save()
         print(f"Vereda {cod_vereda} creada con nombre '{nombre_vereda}'.")
 
-if __name__ == '__main__':
-    connect(
-        db="ganabosques",
-        host='mongodb://localhost:27017'
-    )
-
-    importar_desde_csv("C:/Users/victo/Downloads/divipola_df.csv")
+def convert_id(value):
+    try:
+        if isinstance(value, float) and math.isnan(value):
+            return None
+        return str(int(float(value)))
+    except (ValueError, TypeError):
+        return None
