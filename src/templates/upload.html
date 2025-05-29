@@ -153,18 +153,21 @@
 
                 if (!source) {
                     alert("Debes seleccionar una fuente.");
+                    loader.style.display = "none";
                     e.preventDefault();
                     return;
                 }
 
                 if (isNaN(yearStart) || isNaN(yearEnd)) {
                     alert("Debes seleccionar ambos años.");
+                    loader.style.display = "none";
                     e.preventDefault();
                     return;
                 }
 
                 if (yearEnd <= yearStart) {
                     alert("El año fin debe ser mayor que el año inicio.");
+                    loader.style.display = "none";
                     e.preventDefault();
                 }
             }

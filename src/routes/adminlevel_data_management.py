@@ -13,7 +13,6 @@ def importar_desde_csv(path, nivel='todo'):
     # Intentar abrir con utf-8, y si falla, usar latin1
     try:
         df = pd.read_csv(path, index_col=0, encoding='utf-8')
-        print("leo algo")
     except UnicodeDecodeError:
         print("Error al leer con UTF-8. Reintentando con 'latin1'...")
         try:
