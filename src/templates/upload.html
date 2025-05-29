@@ -30,6 +30,7 @@
                         <option value="adm1">Polígonos de departamentos (ADM1)</option>
                         <option value="upra">Fronteras agronómicas UPRA</option>
                         <option value="protected_areas">Áreas protegidas PNN</option>
+                        <option value="levels_adm">Niveles administrativos</option>
                     </select>
                 </div>
 
@@ -64,7 +65,21 @@
                     </div>
                 </div>
 
+                <!-- Visible solo si se elige "levels_adm" -->
+                <div id="extra-fields_admlevels" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Nivel administrativo a importar:</label>
+                        <select class="form-select" name="level" id="level">
+                            <option value="todo">Todo</option>
+                            <option value="departamento">Departamentos</option>
+                            <option value="municipio">Municipios</option>
+                            <option value="vereda">Veredas</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <!-- Carga de archivo -->
+
                 <div class="mb-3">
                     <label class="form-label">Selecciona el archivo:</label>
                     <input class="form-control" type="file" name="file" required>
@@ -76,20 +91,61 @@
     </div>
 </div>
 
+
+<div id="loader" style="display: none;">
+  <div class="spinner"></div>
+  <p>Importando datos, por favor espera...</p>
+</div>
+
+<style>
+  #loader {
+    position: fixed;
+    z-index: 10000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+
 <!-- Script para control de campos condicionales y validaciones -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const tipoSelect = document.getElementById("file_type");
         const extraFields = document.getElementById("extra-fields");
+        const extraFieldsadm = document.getElementById("extra-fields_admlevels");
         const form = document.getElementById("upload-form");
 
         // Mostrar campos extra solo si el tipo es deforestación
         tipoSelect.addEventListener("change", function () {
             extraFields.style.display = this.value === "deforestation" ? "block" : "none";
+            extraFieldsadm.style.display = this.value === "levels_adm" ? "block" : "none";
         });
+        const loader = document.getElementById("loader");
 
         // Validaciones antes de enviar el formulario
         form.addEventListener("submit", function (e) {
+            loader.style.display = "flex";
             if (tipoSelect.value === "deforestation") {
                 const yearStart = parseInt(document.getElementById("year_start").value);
                 const yearEnd = parseInt(document.getElementById("year_end").value);
