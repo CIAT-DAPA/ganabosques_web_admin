@@ -6,6 +6,7 @@
         <div class="card-body">
             <h2 class="mb-3">Importar Archivos</h2>
 
+            <!-- Mensajes informativos -->
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
                     <div class="alert alert-info">
@@ -16,6 +17,7 @@
                 {% endif %}
             {% endwith %}
 
+            <!-- Formulario de carga -->
             <form method="post" enctype="multipart/form-data" id="upload-form">
                 <div class="mb-3">
                     <label class="form-label">Selecciona el tipo de archivo:</label>
@@ -24,10 +26,14 @@
                         <option value="deforestation">Deforestación anual</option>
                         <option value="administrative_risk">Riesgo administrativo anual</option>
                         <option value="veredas">Polígonos de veredas</option>
+                        <option value="adm2">Polígonos de municipios (ADM2)</option>
+                        <option value="adm1">Polígonos de departamentos (ADM1)</option>
+                        <option value="upra">Fronteras agronómicas UPRA</option>
+                        <option value="protected_areas">Áreas protegidas PNN</option>
                     </select>
                 </div>
 
-                <!-- Visible solo si se elige "deforestation" -->
+                <!-- Campos adicionales solo si se elige deforestación -->
                 <div id="extra-fields" style="display: none;">
                     <div class="mb-3">
                         <label class="form-label">Fuente:</label>
@@ -58,6 +64,7 @@
                     </div>
                 </div>
 
+                <!-- Carga de archivo -->
                 <div class="mb-3">
                     <label class="form-label">Selecciona el archivo:</label>
                     <input class="form-control" type="file" name="file" required>
@@ -69,16 +76,19 @@
     </div>
 </div>
 
+<!-- Script para control de campos condicionales y validaciones -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const tipoSelect = document.getElementById("file_type");
         const extraFields = document.getElementById("extra-fields");
         const form = document.getElementById("upload-form");
 
+        // Mostrar campos extra solo si el tipo es deforestación
         tipoSelect.addEventListener("change", function () {
             extraFields.style.display = this.value === "deforestation" ? "block" : "none";
         });
 
+        // Validaciones antes de enviar el formulario
         form.addEventListener("submit", function (e) {
             if (tipoSelect.value === "deforestation") {
                 const yearStart = parseInt(document.getElementById("year_start").value);

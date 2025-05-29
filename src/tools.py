@@ -1,20 +1,17 @@
 import os
 import sys
-from zipfile import ZipFile
-import glob
 import shutil
+import glob
+from zipfile import ZipFile
 from geoserver.catalog import Catalog
 from geoserver.resource import Coverage
 from geoserver.support import DimensionInfo
 
-class GeoserverClient(object):
-
-    url = ''
-    user = ''
-    pwd = ''
-    catalog = None
-    workspace = None
-    workspace_name = ''
+class GeoserverClient:
+    """
+    Cliente para conectarse y manipular datos en GeoServer.
+    Soporta carga de mosaicos (tiff) y shapefiles comprimidos (.zip).
+    """
 
     def __init__(self, url, user, pwd):
         self.url = url
@@ -25,15 +22,15 @@ class GeoserverClient(object):
         self.workspace_name = ''
 
     def connect(self):
+        """Establece conexión con el GeoServer."""
         try:
-            self.catalog = Catalog(
-                self.url, username=self.user, password=self.pwd)
-            print("connected to Geoserver")
+            self.catalog = Catalog(self.url, username=self.user, password=self.pwd)
+            print("Connected to GeoServer")
         except Exception as err:
-            error = str(err).split()[50:61]
-            print(" ".join(error))
+            print("Error connecting to GeoServer:", err)
 
     def get_workspace(self, name):
+        """Selecciona y guarda el workspace actual."""
         if self.catalog:
             self.workspace = self.catalog.get_workspace(name)
             self.workspace_name = name
@@ -43,110 +40,113 @@ class GeoserverClient(object):
             sys.exit()
 
     def get_store(self, store_name):
+        """Obtiene un store dentro del workspace actual."""
         if self.workspace:
             try:
-                store = self.catalog.get_store(store_name, self.workspace)
-                return store
+                return self.catalog.get_store(store_name, self.workspace)
             except Exception as err:
                 print("Store not found:", store_name)
                 return None
         else:
-            print("Workspace not found:", store_name)
+            print("Workspace not found")
             return None
 
-    def zip_files(self, file, folder_properties, folder_tmp):
-        if os.path.exists(file) and os.path.exists(folder_properties):
+    # ------------- MOSAICOS (GeoTIFF) ------------- #
 
+    def zip_files(self, file, folder_properties, folder_tmp):
+        """Empaqueta un archivo TIFF con sus propiedades como ZIP para mosaico."""
+        if os.path.exists(file) and os.path.exists(folder_properties):
             if os.path.exists(folder_tmp):
                 shutil.rmtree(folder_tmp)
             os.mkdir(folder_tmp)
 
             props = glob.glob(os.path.join(folder_properties, '*.properties'))
             if len(props) != 2:
-                print("check the properties file")
+                print("Check the properties file")
                 sys.exit()
             for p in props:
-                f = p.rsplit(os.path.sep, 1)[-1]
-                print("Copying properties:", file)
-                shutil.copyfile(p, os.path.join(folder_tmp, f))
+                shutil.copy(p, os.path.join(folder_tmp, os.path.basename(p)))
 
-            f = file.rsplit(os.path.sep, 1)[-1]
-            shutil.copyfile(file, os.path.join(folder_tmp, f))
+            shutil.copy(file, os.path.join(folder_tmp, os.path.basename(file)))
 
-            zip_name = "mosaic.zip"  # zip file name
-            list_files = glob.glob(os.path.join(folder_tmp, "*.*"))
-            zip = ZipFile(zip_name, mode="w")
-            print("Zipping")
-            for f in list_files:
-                print(f)
-                zip.write(f, f.rsplit(os.path.sep, 1)[-1])
-            zip.close()
-            zip_path = os.path.join(os.getcwd(), zip_name)
-            return zip_path
+            zip_name = "mosaic.zip"
+            with ZipFile(zip_name, mode="w") as zipf:
+                for f in glob.glob(os.path.join(folder_tmp, "*.*")):
+                    zipf.write(f, os.path.basename(f))
+
+            return os.path.join(os.getcwd(), zip_name)
         else:
-            print("Not zipped")
-            print(file, os.path.exists(file))
-            print(folder_properties, os.path.exists(folder_properties))
+            print("ZIP not created - file or properties missing")
             return None
 
     def create_mosaic(self, store_name, file, folder_properties, folder_tmp):
+        """Crea un mosaico (TIFF) en el store y workspace definidos."""
         output = self.zip_files(file, folder_properties, folder_tmp)
-        print(output)
-        self.catalog.create_imagemosaic(
-            store_name, output, workspace=self.workspace)
-        print(f"Mosaic store : {store_name} is created!")
+        self.catalog.create_imagemosaic(store_name, output, workspace=self.workspace)
+        print(f"Mosaic store: {store_name} created")
+
         store = self.catalog.get_store(store_name, workspace=self.workspace)
-        url = self.url + "workspaces/" + self.workspace_name + \
-            "/coveragestores/" + store_name + "/coverages/" + store_name + ".xml"
-        print(url)
+        url = f"{self.url}workspaces/{self.workspace_name}/coveragestores/{store_name}/coverages/{store_name}.xml"
         xml = self.catalog.get_xml(url)
         name = xml.find("name").text
-        coverage = Coverage(self.catalog, store=store,
-                            name=name, href=url, workspace=self.workspace)
-        print("Get resource success")
+
+        coverage = Coverage(self.catalog, store=store, name=name, href=url, workspace=self.workspace)
         coverage.supported_formats = ["GEOTIFF"]
-        timeInfo = DimensionInfo(name="time", enabled="true", presentation="LIST", resolution=None,
-                                 units="ISO8601", unit_symbol=None)
         coverage.metadata = {
-            "dirName": "f{store_name}_{store_name}", "time": timeInfo}
+            "dirName": f"{store_name}_{store_name}",
+            "time": DimensionInfo(name="time", enabled="true", presentation="LIST")
+        }
         self.catalog.save(coverage)
-        print("Time Dimension is enabled")
-        print("Done Successfully!")
+        print("Time dimension enabled")
 
     def update_mosaic(self, store, file, folder_properties, folder_tmp):
+        """Agrega nuevas imágenes TIFF a un mosaico existente."""
         output = self.zip_files(file, folder_properties, folder_tmp)
         self.catalog.harvest_uploadgranule(output, store)
         print("Mosaic updated")
 
-    def check(self, store):
-        coverages = self.catalog.mosaic_coverages(store)
-        granules = self.catalog.mosaic_granules(
-            (coverages[b"coverages"][b"coverage"][0][b"name"]).decode("utf-8"), store)
-        granules_count = len(granules[b"features"])
-        print("granules", granules_count)
+    # ------------- SHAPEFILES (ZIP) ------------- #
 
-    def delete_folder_content(self, folder_path):
-        list_dir = os.listdir(folder_path)
-        for filename in list_dir:
-            file_path = os.path.join(folder_path, filename)
-
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                print("deleting file:", file_path)
-                os.unlink(file_path)
-
-            elif os.path.isdir(file_path):
-                print("deleting folder:", file_path)
-                shutil.rmtree(file_path)
-
-    def create_shp_datastore(self, path, store_name, workspace):
+    def create_shp_datastore(self, path, store_name, workspace, layer_name=None):
+        """
+        Crea un store de shapefile, renombrando los archivos internos del ZIP
+        para garantizar que la capa se registre con el nombre deseado.
+        """
         if not self.catalog:
             self.connect()
+
         if not os.path.exists(path):
             raise FileNotFoundError(f"Archivo no encontrado: {path}")
 
-        try:
-            self.catalog.create_featurestore(store_name, data=path, workspace=workspace)
-            print(f"Shapefile store '{store_name}' creado en workspace '{workspace}'")
-        except Exception as e:
-            print(f"Error al crear el shapefile store: {e}")
-            raise
+        import tempfile
+        import uuid
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Descomprimir ZIP original
+            with ZipFile(path, 'r') as zip_ref:
+                zip_ref.extractall(tmpdir)
+
+            # Encontrar archivo .shp principal
+            shp_files = [f for f in os.listdir(tmpdir) if f.endswith('.shp')]
+            if not shp_files:
+                raise Exception("No se encontró ningún archivo .shp en el ZIP")
+            base_name = os.path.splitext(shp_files[0])[0]
+
+            # Renombrar todos los archivos relacionados
+            new_base = layer_name if layer_name else base_name
+            for ext in ['shp', 'shx', 'dbf', 'prj', 'cpg']:  # posibles extensiones
+                old_file = os.path.join(tmpdir, f"{base_name}.{ext}")
+                if os.path.exists(old_file):
+                    new_file = os.path.join(tmpdir, f"{new_base}.{ext}")
+                    os.rename(old_file, new_file)
+
+            # Reempaquetar ZIP
+            new_zip_path = os.path.join(tempfile.gettempdir(), f"{uuid.uuid4().hex}.zip")
+            with ZipFile(new_zip_path, 'w') as zipf:
+                for file in os.listdir(tmpdir):
+                    full_path = os.path.join(tmpdir, file)
+                    zipf.write(full_path, file)
+
+            # Crear featurestore en GeoServer
+            self.catalog.create_featurestore(store_name, data=new_zip_path, workspace=workspace)
+            print(f"Shapefile store '{store_name}' creado en workspace '{workspace}' con capa '{new_base}'")
