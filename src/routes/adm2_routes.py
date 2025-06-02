@@ -15,7 +15,7 @@ def list_adm2():
         new_adm2 = Adm2(
             name=form.name.data,
             ext_id=form.ext_id.data,
-            adm1_id=form.adm1_id.data,
+            adm1_id=Adm1.objects(id=form.adm1_id.data).first(),  # Asignar documento, no string
             log=Log(enable=form.enable.data)
         )
         new_adm2.save()
@@ -45,7 +45,7 @@ def edit_adm2(id):
     if form.validate_on_submit():
         adm.name = form.name.data
         adm.ext_id = form.ext_id.data
-        adm.adm1_id = form.adm1_id.data
+        adm.adm1_id = Adm1.objects(id=form.adm1_id.data).first()  # Corregido aquí
         if not adm.log:
             adm.log = Log(enable=True)
         adm.log.enable = form.enable.data

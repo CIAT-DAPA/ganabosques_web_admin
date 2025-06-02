@@ -123,6 +123,9 @@
             <a class="nav-link {% if active_page == 'adm2' %}active{% endif %}" href="{{ url_for('adm2.list_adm2') }}">
                 <i class="fa-solid fa-pen-to-square"></i><span>Municipios</span>
             </a>
+            <a class="nav-link {% if active_page == 'adm3' %}active{% endif %}" href="{{ url_for('adm3.list_adm3') }}">
+                <i class="fa-solid fa-pen-to-square"></i><span>Veredas</span>
+            </a>
             <a class="nav-link" href="#">
                 🔧 <span>Gestión Usuarios</span>
             </a>
@@ -148,6 +151,7 @@
                 <a class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}"><i class="fa-solid fa-truck-fast"></i>Importar Proveedores</a>
                 <a class="nav-link text-white {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}"><i class="fa-solid fa-pen-to-square"></i>Departamentos</a>
                 <a class="nav-link text-white {% if active_page == 'adm2' %}active{% endif %}" href="{{ url_for('adm2.list_adm2') }}"><i class="fa-solid fa-pen-to-square"></i>Municipios</a>                
+                <a class="nav-link text-white {% if active_page == 'adm3' %}active{% endif %}" href="{{ url_for('adm3.list_adm3') }}"><i class="fa-solid fa-pen-to-square"></i>Veredas</a>                                
                 <a class="nav-link text-white" href="#">🔧 Gestión Usuarios</a>
                 <a class="nav-link text-white" href="#">🗺️ Mapas y Capas</a>
                 <a class="nav-link text-white" href="#">📊 Reportes</a>
