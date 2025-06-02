@@ -10,6 +10,7 @@ from config import config
 from routes.home import home_bp
 from routes.spatial_data_management import spatial_bp
 from routes.suppliers_data_management import suppliers_bp
+from routes.adm1_routes import adm1_bp 
 
 # Inicializar Flask
 load_dotenv()
@@ -28,6 +29,7 @@ app.config['ALLOWED_EXTENSIONS'] = config['ALLOWED_EXTENSIONS']
 app.register_blueprint(home_bp)
 app.register_blueprint(spatial_bp)
 app.register_blueprint(suppliers_bp)
+app.register_blueprint(adm1_bp)
 
 # Ejecutar aplicación
 if __name__ == '__main__':
