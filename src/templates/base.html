@@ -109,16 +109,19 @@
         <button id="toggleSidebar" class="toggle-btn">☰</button>
         <nav class="nav flex-column">
             <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home.home') }}">
-                🏠 <span>Inicio</span>
+                <i class="fa-solid fa-house"></i><span>Inicio</span>
             </a>
             <a class="nav-link {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}">
-                📥 <span>Importar Archivos</span>
+                <i class="fa-solid fa-download"></i> <span>Datos espaciales</span>
             </a>
             <a class="nav-link {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}">
-                🧾 <span>Importar Proveedores</span>
+                <i class="fa-solid fa-truck-fast"></i><span>Importar Proveedores</span>
             </a>
             <a class="nav-link {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}">
-                🏛️ <span>Departamentos (Adm1)</span>
+                <i class="fa-solid fa-pen-to-square"></i><span>Departamentos</span>
+            </a>
+            <a class="nav-link {% if active_page == 'adm2' %}active{% endif %}" href="{{ url_for('adm2.list_adm2') }}">
+                <i class="fa-solid fa-pen-to-square"></i><span>Municipios</span>
             </a>
             <a class="nav-link" href="#">
                 🔧 <span>Gestión Usuarios</span>
@@ -140,10 +143,11 @@
         </div>
         <div class="offcanvas-body bg-dark">
             <nav class="nav flex-column">
-                <a class="nav-link text-white {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home.home') }}">🏠 Home</a>
-                <a class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}">📥 Importar Archivos</a>
-                <a class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}">🧾 Importar Proveedores</a>
-                <a class="nav-link text-white {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}">🏛️ Departamentos (Adm1)</a>
+                <a class="nav-link text-white {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home.home') }}"><i class="fa-solid fa-house"></i> Inicio</a>
+                <a class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}"><i class="fa-solid fa-download"></i>Datos espaciales</a>
+                <a class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}"><i class="fa-solid fa-truck-fast"></i>Importar Proveedores</a>
+                <a class="nav-link text-white {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}"><i class="fa-solid fa-pen-to-square"></i>Departamentos</a>
+                <a class="nav-link text-white {% if active_page == 'adm2' %}active{% endif %}" href="{{ url_for('adm2.list_adm2') }}"><i class="fa-solid fa-pen-to-square"></i>Municipios</a>                
                 <a class="nav-link text-white" href="#">🔧 Gestión Usuarios</a>
                 <a class="nav-link text-white" href="#">🗺️ Mapas y Capas</a>
                 <a class="nav-link text-white" href="#">📊 Reportes</a>
