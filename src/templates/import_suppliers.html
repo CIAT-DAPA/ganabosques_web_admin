@@ -18,11 +18,11 @@
 
             <form method="POST" enctype="multipart/form-data" class="row g-3">
                 <div class="col-12">
-                    <label for="empresa_id" class="form-label">Selecciona la empresa:</label>
-                    <select name="empresa_id" id="empresa_id" class="form-select" required>
-                        <option value="">-- Selecciona una empresa --</option>
-                        {% for empresa in empresas %}
-                            <option value="{{ empresa.id }}" {% if selected_empresa == empresa.id|string %}selected{% endif %}>{{ empresa.name }}</option>
+                    <label for="label" class="form-label">Selecciona el tipo de código de empresa:</label>
+                    <select name="label" id="label" class="form-select" required>
+                        <option value="">-- Selecciona un tipo de código --</option>
+                        {% for label in labels %}
+                            <option value="{{ label.name }}" {% if selected_label == label.name %}selected{% endif %}>{{ label.value }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -45,8 +45,9 @@
                 </div>
 
                 <div class="col-12">
-                    <label for="archivo" class="form-label">Selecciona el archivo:</label>
+                    <label for="archivo" class="form-label">Selecciona el archivo CSV:</label>
                     <input type="file" name="archivo" id="archivo" class="form-control" accept=".csv" required>
+                    <div class="form-text">El archivo debe tener dos columnas: código de empresa, código de finca</div>
                 </div>
 
                 <div class="col-12">
@@ -60,16 +61,16 @@
     <hr class="my-5">
     <div class="row">
         <div class="col-md-6">
-            <h4 class="text-success">Códigos encontrados ({{ encontrados|length }})</h4>
+            <h4 class="text-success">Registros encontrados ({{ encontrados|length }})</h4>
             <ul class="list-group mb-2">
-                {% for codigo in encontrados %}
-                    <li class="list-group-item">{{ codigo }}</li>
+                {% for empresa, finca in encontrados %}
+                    <li class="list-group-item">Empresa: {{ empresa }} - Finca: {{ finca }}</li>
                 {% endfor %}
             </ul>
             {% if encontrados %}
             <form method="POST" action="{{ url_for('suppliers.descargar_encontrados') }}">
-                {% for codigo in encontrados %}
-                    <input type="hidden" name="encontrados[]" value="{{ codigo }}">
+                {% for empresa, finca in encontrados %}
+                    <input type="hidden" name="encontrados[]" value="{{ empresa }}|{{ finca }}">
                 {% endfor %}
                 <button class="btn btn-success w-100" type="submit">Descargar CSV</button>
             </form>
@@ -77,16 +78,16 @@
         </div>
 
         <div class="col-md-6">
-            <h4 class="text-danger">Códigos no encontrados ({{ no_encontrados|length }})</h4>
+            <h4 class="text-danger">Registros no encontrados ({{ no_encontrados|length }})</h4>
             <ul class="list-group mb-2">
-                {% for codigo in no_encontrados %}
-                    <li class="list-group-item">{{ codigo }}</li>
+                {% for empresa, finca in no_encontrados %}
+                    <li class="list-group-item">Empresa: {{ empresa }} - Finca: {{ finca }}</li>
                 {% endfor %}
             </ul>
             {% if no_encontrados %}
             <form method="POST" action="{{ url_for('suppliers.descargar_no_encontrados') }}">
-                {% for codigo in no_encontrados %}
-                    <input type="hidden" name="no_encontrados[]" value="{{ codigo }}">
+                {% for empresa, finca in no_encontrados %}
+                    <input type="hidden" name="no_encontrados[]" value="{{ empresa }}|{{ finca }}">
                 {% endfor %}
                 <button class="btn btn-danger w-100" type="submit">Descargar CSV</button>
             </form>
