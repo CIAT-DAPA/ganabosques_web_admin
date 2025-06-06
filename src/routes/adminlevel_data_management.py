@@ -23,6 +23,23 @@ def importar_desde_csv(path, nivel='todo'):
 
     nivel = nivel.lower()
 
+    cache_adm1 = {}
+    cache_adm2 = {}
+    cache_adm3 = {}
+
+    if nivel in ['departamento', 'todo']:
+        cache_adm1 = {a.ext_id: a for a in Adm1.objects.only('ext_id')}
+
+    if nivel in ['municipio', 'todo']:
+        cache_adm2 = {a.ext_id: a for a in Adm2.objects.only('ext_id')}
+        if not cache_adm1:
+            cache_adm1 = {a.ext_id: a for a in Adm1.objects.only('ext_id')}
+
+    if nivel in ['vereda', 'todo']:
+        cache_adm3 = {a.ext_id: a for a in Adm3.objects.only('ext_id')}
+        if not cache_adm2:
+            cache_adm2 = {a.ext_id: a for a in Adm2.objects.only('ext_id')}
+
     requeridos = {
         'departamento': ['COD_DEPARTAMENTO', 'NOMBRE_DEPARTAMENTO'],
         'municipio': ['COD_DEPARTAMENTO', 'COD_MUNICIPIO', 'NOMBRE_MUNICIPIO'],
@@ -46,18 +63,18 @@ def importar_desde_csv(path, nivel='todo'):
     # Recorrer solo una vez
     for _, row in df.iterrows():
         if nivel in ['departamento', 'todo']:
-            procesar_fila_departamento(row)
+            procesar_fila_departamento(row, cache_adm1)
         if nivel in ['municipio', 'todo']:
-            procesar_fila_municipio(row)
+            procesar_fila_municipio(row, cache_adm1, cache_adm2)
         if nivel in ['vereda', 'todo']:
-            procesar_fila_vereda(row)
+            procesar_fila_vereda(row, cache_adm2, cache_adm3)
 
 def get_log():
     now = datetime.now()
     return Log(enable=True, created=now, updated=now)
 
 
-def procesar_fila_departamento(row):
+def procesar_fila_departamento(row, cache_adm1):
     ext_id = convert_id(row['COD_DEPARTAMENTO'])
     name = row['NOMBRE_DEPARTAMENTO']
 
@@ -68,13 +85,15 @@ def procesar_fila_departamento(row):
         print(f"Departamento sin nombre para código {ext_id}. No se crea.")
         return
     
-    if Adm1.objects(ext_id=ext_id).first():
+    if ext_id in cache_adm1:
         print(f"Departamento {ext_id} {name} ya existe. No se crea de nuevo.")
     else:
-        Adm1(name=name, ext_id=ext_id, log=get_log()).save()
+        adm1 = Adm1(name=name, ext_id=ext_id, log=get_log())
+        adm1.save()
+        cache_adm1[ext_id] = adm1
         print(f"Departamento {ext_id} creado con nombre '{name}'.")
 
-def procesar_fila_municipio(row):
+def procesar_fila_municipio(row, cache_adm1, cache_adm2):
     cod_dep = convert_id(row['COD_DEPARTAMENTO'])
     cod_mpio = convert_id(row['COD_MUNICIPIO'])
     nombre_mpio = row['NOMBRE_MUNICIPIO']
@@ -89,17 +108,19 @@ def procesar_fila_municipio(row):
         print(f"Municipio sin nombre para código {cod_mpio}. No se crea.")
         return
     
-    adm1 = Adm1.objects(ext_id=cod_dep).first()
+    adm1 = cache_adm1.get(cod_dep)
     if not adm1:
         print(f"Departamento {cod_dep} no existe. Municipio {cod_mpio} '{nombre_mpio}' no se crea.")
         return
-    if Adm2.objects(ext_id=cod_mpio).first():
+    if cod_mpio in cache_adm2:
         print(f"Municipio {cod_mpio} {nombre_mpio} ya existe. No se crea de nuevo.")
     else:
-        Adm2(name=nombre_mpio, ext_id=cod_mpio, adm1_id=adm1, log=get_log()).save()
+        adm2 = Adm2(name=nombre_mpio, ext_id=cod_mpio, adm1_id=adm1, log=get_log())
+        adm2.save()
+        cache_adm2[cod_mpio] = adm2
         print(f"Municipio {cod_mpio} creado con nombre '{nombre_mpio}'.")
 
-def procesar_fila_vereda(row):
+def procesar_fila_vereda(row, cache_adm2, cache_adm3):
     cod_mpio = convert_id(row['COD_MUNICIPIO'])
     cod_vereda = convert_id(row['COD_VEREDA'])
     nombre_vereda = row['NOMBRE_VEREDA']
@@ -114,15 +135,17 @@ def procesar_fila_vereda(row):
         print(f"Vereda sin nombre para código {cod_vereda}. No se crea.")
         return
 
-    adm2 = Adm2.objects(ext_id=cod_mpio).first()
+    adm2 = cache_adm2.get(cod_mpio)
     if not adm2:
         print(f"Municipio {cod_mpio} no existe. Vereda {cod_vereda} '{nombre_vereda}' no se crea.")
         return
 
-    if Adm3.objects(ext_id=cod_vereda).first():
+    if cod_vereda in cache_adm3:
         print(f"Vereda {cod_vereda} {nombre_vereda} ya existe. No se crea de nuevo.")
     else:
-        Adm3(name=nombre_vereda, ext_id=cod_vereda, adm2_id=adm2, log=get_log()).save()
+        adm3 = Adm3(name=nombre_vereda, ext_id=cod_vereda, adm2_id=adm2, log=get_log())
+        adm3.save()
+        cache_adm3[cod_vereda] = adm3
         print(f"Vereda {cod_vereda} creada con nombre '{nombre_vereda}'.")
 
 def convert_id(value):
