@@ -94,7 +94,7 @@ class GeoserverClient:
         coverage.supported_formats = ["GEOTIFF"]
         coverage.metadata = {
             "dirName": f"{store_name}_{store_name}",
-            "time": DimensionInfo(name="time", enabled="true", presentation="LIST")
+            "time": DimensionInfo(name="time", enabled="true", presentation="LIST", resolution=None, units="ISO8601", unit_symbol=None)
         }
         self.catalog.save(coverage)
         print("Time dimension enabled")
