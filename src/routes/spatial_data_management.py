@@ -7,6 +7,7 @@ from geoserver_import import upload_to_geoserver
 from tools import GeoserverClient
 from config import config
 from ganabosques_orm.auxiliaries.log import Log
+from ganabosques_orm.enums.deforestationsource import DeforestationSource
 from .adminlevel_data_management import importar_desde_csv
 import time
 
@@ -30,7 +31,6 @@ def upload_file():
         file_type = request.form.get('file_type')
 
         if file_type == "levels_adm":
-            
             file = request.files.get('file')
             level = request.form.get('level')
             
@@ -127,4 +127,12 @@ def upload_file():
 
                 return redirect(url_for('spatial.upload_file'))
 
-    return render_template('upload.html', active_page='importar', current_year=datetime.now().year)
+    # Fuentes dinámicas desde enum
+    sources = [(item.value, item.name.replace("_", " ").capitalize()) for item in DeforestationSource]
+
+    return render_template(
+        'upload.html',
+        active_page='importar',
+        current_year=datetime.now().year,
+        sources=sources
+    )

@@ -17,7 +17,7 @@
 
     .sidebar {
       background-color: #343a40;
-      width: 220px;
+      width: 240px;
       transition: width 0.3s ease;
     }
 
@@ -115,7 +115,7 @@
       <i class="fa-solid fa-house"></i><span>Inicio</span>
     </a>
     <a class="nav-link {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}">
-      <i class="fa-solid fa-download"></i><span>Datos espaciales</span>
+      <i class="fa-solid fa-download"></i><span>Importar Datos Espaciales</span>
     </a>
     <a class="nav-link {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}">
       <i class="fa-solid fa-truck-fast"></i><span>Importar Proveedores</span>
@@ -124,7 +124,7 @@
     <!-- Divipola -->
     <div class="nav-item">
       <a class="nav-link {% if active_page in ['adm1', 'adm2', 'adm3'] %}active{% endif %}" data-bs-toggle="collapse" href="#divipolaSubmenu" role="button" aria-expanded="true" aria-controls="divipolaSubmenu">
-        <i class="fa-solid fa-map"></i><span>Divipola</span>
+        <i class="fa-solid fa-pen-to-square"></i><span>Gestión de Datos</span>
       </a>
       <div class="submenu collapse {% if active_page in ['adm1', 'adm2', 'adm3'] %}show{% endif %}" id="divipolaSubmenu">
         <a class="nav-link {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}">
@@ -152,13 +152,13 @@
   <div class="offcanvas-body bg-dark">
     <nav class="nav flex-column">
       <a class="nav-link text-white {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home.home') }}"><i class="fa-solid fa-house"></i> Inicio</a>
-      <a class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}"><i class="fa-solid fa-download"></i> Datos espaciales</a>
+      <a class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}"><i class="fa-solid fa-download"></i> Importar Datos Espaciales </a>
       <a class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}"><i class="fa-solid fa-truck-fast"></i> Importar Proveedores</a>
-      <a class="nav-link text-white" data-bs-toggle="collapse" href="#divipolaSubmenuMobile" role="button" aria-expanded="false" aria-controls="divipolaSubmenuMobile"><i class="fa-solid fa-map"></i> Divipola</a>
+      <a class="nav-link text-white" data-bs-toggle="collapse" href="#divipolaSubmenuMobile" role="button" aria-expanded="false" aria-controls="divipolaSubmenuMobile"><i class="fa-solid fa-pen-to-square"></i> Gestión de Datos</a>
       <div class="collapse" id="divipolaSubmenuMobile">
-        <a class="nav-link text-white ps-4 {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}">Departamentos</a>
-        <a class="nav-link text-white ps-4 {% if active_page == 'adm2' %}active{% endif %}" href="{{ url_for('adm2.list_adm2') }}">Municipios</a>
-        <a class="nav-link text-white ps-4 {% if active_page == 'adm3' %}active{% endif %}" href="{{ url_for('adm3.list_adm3') }}">Veredas</a>
+        <a class="nav-link text-white ps-4 {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}"> Departamentos</a>
+        <a class="nav-link text-white ps-4 {% if active_page == 'adm2' %}active{% endif %}" href="{{ url_for('adm2.list_adm2') }}"> Municipios</a>
+        <a class="nav-link text-white ps-4 {% if active_page == 'adm3' %}active{% endif %}" href="{{ url_for('adm3.list_adm3') }}"> Veredas</a>
       </div>
       <a class="nav-link text-white" href="#"><i class="fa-solid fa-user-gear"></i> Gestión Usuarios</a>
     </nav>

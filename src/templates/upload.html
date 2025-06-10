@@ -6,7 +6,6 @@
         <div class="card-body">
             <h2 class="mb-3">Manejo de datos espaciales</h2>
 
-            <!-- Mensajes informativos -->
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
                     <div class="alert alert-info">
@@ -17,7 +16,6 @@
                 {% endif %}
             {% endwith %}
 
-            <!-- Formulario de carga -->
             <form method="post" enctype="multipart/form-data" id="upload-form">
                 <div class="mb-3">
                     <label class="form-label">Selecciona el tipo de archivo:</label>
@@ -33,14 +31,15 @@
                     </select>
                 </div>
 
-                <!-- Campos adicionales solo si se elige deforestación -->
+                <!-- Campos adicionales para deforestación -->
                 <div id="extra-fields" style="display: none;">
                     <div class="mb-3">
                         <label class="form-label">Fuente:</label>
                         <select class="form-select" name="source" id="source">
                             <option value="">-- Selecciona Fuente --</option>
-                            <option value="smbyc">SMByC</option>
-                            <option value="gfw">Global Forest Watch</option>
+                            {% for value, label in sources %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 
@@ -64,7 +63,7 @@
                     </div>
                 </div>
 
-                <!-- Visible solo si se elige "levels_adm" -->
+                <!-- Campos adicionales para levels_adm -->
                 <div id="extra-fields_admlevels" style="display: none;">
                     <div class="mb-3">
                         <label class="form-label">Nivel administrativo a importar:</label>
@@ -76,8 +75,6 @@
                         </select>
                     </div>
                 </div>
-                
-                <!-- Carga de archivo -->
 
                 <div class="mb-3">
                     <label class="form-label">Selecciona el archivo:</label>
@@ -89,7 +86,6 @@
         </div>
     </div>
 </div>
-
 
 <div id="loader" style="display: none;">
   <div class="spinner"></div>
@@ -127,22 +123,19 @@
   }
 </style>
 
-<!-- Script para control de campos condicionales y validaciones -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const tipoSelect = document.getElementById("file_type");
         const extraFields = document.getElementById("extra-fields");
         const extraFieldsadm = document.getElementById("extra-fields_admlevels");
         const form = document.getElementById("upload-form");
+        const loader = document.getElementById("loader");
 
-        // Mostrar campos extra solo si el tipo es deforestación
         tipoSelect.addEventListener("change", function () {
             extraFields.style.display = this.value === "deforestation" ? "block" : "none";
             extraFieldsadm.style.display = this.value === "levels_adm" ? "block" : "none";
         });
-        const loader = document.getElementById("loader");
 
-        // Validaciones antes de enviar el formulario
         form.addEventListener("submit", function (e) {
             loader.style.display = "flex";
             if (tipoSelect.value === "deforestation") {
