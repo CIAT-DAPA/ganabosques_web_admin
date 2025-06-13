@@ -15,6 +15,7 @@ if os.getenv('DEBUG', 'true').lower() == 'true':
     config['GEOSERVER_USER'] = 'admin'
     config['GEOSERVER_PWD'] = 'geoserver'
     config['GEOSERVER_URL'] = 'http://localhost:8600/geoserver/rest/'
+    config['API_BASE_URL'] = 'http://localhost:5000/api'
 
 else:
     # Parámetros desde variables de entorno para producción
@@ -28,6 +29,7 @@ else:
     config['GEOSERVER_USER'] = os.getenv('GEOSERVER_USER')
     config['GEOSERVER_PWD'] = os.getenv('GEOSERVER_PWD')
     config['GEOSERVER_URL'] = os.getenv('GEOSERVER_URL')
+    config['API_BASE_URL'] = os.getenv('API_BASE_URL')
 
 # Rutas de carpetas usadas en la app
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))

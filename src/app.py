@@ -7,17 +7,23 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Importar configuraciones y rutas
 from config import config
-from routes.home import home_bp
+from extensions import login_manager 
+from routes.home import bp as home_bp
 from routes.spatial_data_management import spatial_bp
 from routes.suppliers_data_management import suppliers_bp
 from routes.adm1_routes import adm1_bp 
 from routes.adm2_routes import adm2_bp
 from routes.adm3_routes import adm3_bp
 
+
+
 # Inicializar Flask
 load_dotenv()
 app = Flask(__name__)
 app.secret_key = config['SECRET_KEY']
+
+# Inicializar el gestor de login
+login_manager.init_app(app)
 
 # Configuración de carpetas de subida de archivos desde config
 os.makedirs(config['UPLOAD_FOLDER'], exist_ok=True)
