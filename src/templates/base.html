@@ -139,11 +139,14 @@
         </a>
 
         <div class="d-flex ms-auto align-items-center text-white">
-          <i class="fas fa-user-circle me-2"></i>{{ current_user.username }}
-          {% if current_user.email %}
+          <i class="fas fa-user-circle me-2"></i>{{ current_user.username }} {%
+          if current_user.email %}
           <!-- <small class="text-muted ms-1">({{ current_user.email }})</small> -->
           {% endif %}
-          <a class="btn btn-outline-light btn-sm ms-3" href="{{ url_for('home_bp.logout') }}">
+          <a
+            class="btn btn-outline-light btn-sm ms-3"
+            href="{{ url_for('home_bp.logout') }}"
+          >
             <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
           </a>
         </div>
@@ -154,14 +157,31 @@
     <nav id="sidebar" class="sidebar d-none d-md-block">
       <button id="toggleSidebar" class="toggle-btn">☰</button>
       <nav class="nav flex-column">
-        <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home_bp.home') }}">
+        <a
+          class="nav-link {% if active_page == 'home' %}active{% endif %}"
+          href="{{ url_for('home_bp.home') }}"
+        >
           <i class="fa-solid fa-house"></i><span>Inicio</span>
         </a>
-        <a class="nav-link {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}">
-          <i class="fa-solid fa-download"></i><span>Importar Datos Espaciales</span>
+        <a
+          class="nav-link {% if active_page == 'importar' %}active{% endif %}"
+          href="{{ url_for('spatial.upload_file') }}"
+        >
+          <i class="fa-solid fa-download"></i
+          ><span>Importar Datos Espaciales</span>
         </a>
-        <a class="nav-link {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}">
-          <i class="fa-solid fa-truck-fast"></i><span>Importar Proveedores</span>
+        <a
+          class="nav-link {% if active_page == 'import_suppliers' %}active{% endif %}"
+          href="{{ url_for('suppliers.importar_proveedores') }}"
+        >
+          <i class="fa-solid fa-truck-fast"></i
+          ><span>Importar Proveedores</span>
+        </a>
+        <a
+          class="nav-link {% if active_page == 'data_management' %}active{% endif %}"
+          href="{{ url_for('datamanagement.data_management') }}"
+        >
+          <i class="fa-solid fa-database"></i><span>Consulta de Datos</span>
         </a>
         <div class="nav-item">
           <a
@@ -172,50 +192,111 @@
             aria-expanded="true"
             aria-controls="divipolaSubmenu"
           >
-            <i class="fa-solid fa-pen-to-square"></i><span>Gestión de Datos</span>
+            <i class="fa-solid fa-pen-to-square"></i
+            ><span>Gestión de Datos</span>
           </a>
-          <div class="submenu collapse {% if active_page in ['adm1', 'adm2', 'adm3'] %}show{% endif %}" id="divipolaSubmenu">
-            <a class="nav-link {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}">
+          <div
+            class="submenu collapse {% if active_page in ['adm1', 'adm2', 'adm3'] %}show{% endif %}"
+            id="divipolaSubmenu"
+          >
+            <a
+              class="nav-link {% if active_page == 'adm1' %}active{% endif %}"
+              href="{{ url_for('adm1.list_adm1') }}"
+            >
               <span style="margin-left: 20px">Departamentos</span>
             </a>
-            <a class="nav-link {% if active_page == 'adm2' %}active{% endif %}" href="{{ url_for('adm2.list_adm2') }}">
+            <a
+              class="nav-link {% if active_page == 'adm2' %}active{% endif %}"
+              href="{{ url_for('adm2.list_adm2') }}"
+            >
               <span style="margin-left: 20px">Municipios</span>
             </a>
-            <a class="nav-link {% if active_page == 'adm3' %}active{% endif %}" href="{{ url_for('adm3.list_adm3') }}">
+            <a
+              class="nav-link {% if active_page == 'adm3' %}active{% endif %}"
+              href="{{ url_for('adm3.list_adm3') }}"
+            >
               <span style="margin-left: 20px">Veredas</span>
             </a>
           </div>
         </div>
-        <a class="nav-link" href="#"><i class="fa-solid fa-user-gear"></i><span>Gestión de Usuarios</span></a>
+        <a class="nav-link" href="#"
+          ><i class="fa-solid fa-user-gear"></i
+          ><span>Gestión de Usuarios</span></a
+        >
       </nav>
     </nav>
 
     <!-- Sidebar móvil -->
-    <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="mobileSidebar">
+    <div
+      class="offcanvas offcanvas-start text-bg-dark"
+      tabindex="-1"
+      id="mobileSidebar"
+    >
       <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title">Menú</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
       </div>
       <div class="offcanvas-body d-flex flex-column">
         <nav class="nav flex-column">
-          <a class="nav-link text-white {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home_bp.home') }}">
+          <a
+            class="nav-link text-white {% if active_page == 'home' %}active{% endif %}"
+            href="{{ url_for('home_bp.home') }}"
+          >
             <i class="fa-solid fa-house"></i> Inicio
           </a>
-          <a class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}" href="{{ url_for('spatial.upload_file') }}">
+          <a
+            class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}"
+            href="{{ url_for('spatial.upload_file') }}"
+          >
             <i class="fa-solid fa-download"></i> Importar Datos Espaciales
           </a>
-          <a class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}" href="{{ url_for('suppliers.importar_proveedores') }}">
+          <a
+            class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}"
+            href="{{ url_for('suppliers.importar_proveedores') }}"
+          >
             <i class="fa-solid fa-truck-fast"></i> Importar Proveedores
           </a>
-          <a class="nav-link text-white" data-bs-toggle="collapse" href="#divipolaSubmenuMobile" role="button" aria-expanded="false" aria-controls="divipolaSubmenuMobile">
+          <a
+            class="nav-link text-white {% if active_page == 'data_management' %}active{% endif %}"
+            href="{{ url_for('datamanagement.data_management') }}"
+          >
+            <i class="fa-solid fa-database"></i> Consulta de Datos
+          </a>
+          <a
+            class="nav-link text-white"
+            data-bs-toggle="collapse"
+            href="#divipolaSubmenuMobile"
+            role="button"
+            aria-expanded="false"
+            aria-controls="divipolaSubmenuMobile"
+          >
             <i class="fa-solid fa-pen-to-square"></i> Gestión de Datos
           </a>
           <div class="collapse" id="divipolaSubmenuMobile">
-            <a class="nav-link text-white ps-4 {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}">Departamentos</a>
-            <a class="nav-link text-white ps-4 {% if active_page == 'adm2' %}active{% endif %}" href="{{ url_for('adm2.list_adm2') }}">Municipios</a>
-            <a class="nav-link text-white ps-4 {% if active_page == 'adm3' %}active{% endif %}" href="{{ url_for('adm3.list_adm3') }}">Veredas</a>
+            <a
+              class="nav-link text-white ps-4 {% if active_page == 'adm1' %}active{% endif %}"
+              href="{{ url_for('adm1.list_adm1') }}"
+              >Departamentos</a
+            >
+            <a
+              class="nav-link text-white ps-4 {% if active_page == 'adm2' %}active{% endif %}"
+              href="{{ url_for('adm2.list_adm2') }}"
+              >Municipios</a
+            >
+            <a
+              class="nav-link text-white ps-4 {% if active_page == 'adm3' %}active{% endif %}"
+              href="{{ url_for('adm3.list_adm3') }}"
+              >Veredas</a
+            >
           </div>
-          <a class="nav-link text-white mt-3" href="#"><i class="fa-solid fa-user-gear"></i> Gestión Usuarios</a>
+          <a class="nav-link text-white mt-3" href="#"
+            ><i class="fa-solid fa-user-gear"></i> Gestión Usuarios</a
+          >
         </nav>
         <hr class="bg-light" />
       </div>
@@ -234,7 +315,10 @@
 
       toggleBtn?.addEventListener("click", () => {
         sidebar.classList.toggle("collapsed");
-        localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
+        localStorage.setItem(
+          "sidebarCollapsed",
+          sidebar.classList.contains("collapsed")
+        );
       });
 
       document.addEventListener("DOMContentLoaded", () => {

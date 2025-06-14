@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Gestión de Datos de Deforestación</h2>
+  <p>
+    Este módulo verifica si existen nuevos datos en la fuente oficial del IDEAM relacionados con la cobertura boscosa natural.
+    Si hay un nuevo archivo disponible, puedes descargarlo y convertirlo automáticamente a formato .TIFF.
+  </p>
+
+  <!-- Botón para activar búsqueda -->
+  <button id="check-button" class="btn btn-primary mb-3">
+    <i class="fas fa-search me-2"></i>Buscar nuevos datos
+  </button>
+
+  <div id="status" class="my-3 d-none">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <span class="ms-2">Verificando nuevos datos disponibles...</span>
+  </div>
+
+  <div id="result" class="alert d-none" role="alert"></div>
+
+  <form id="download-form" method="POST" action="{{ url_for('datamanagement.data_management') }}" class="d-none mt-3">
+    <button type="submit" class="btn btn-success">
+      <i class="fas fa-download me-2"></i>Descargar y Convertir Archivo
+    </button>
+  </form>
+</div>
+
+<script>
+document.getElementById('check-button').addEventListener('click', async function () {
+  const statusDiv = document.getElementById('status');
+  const resultDiv = document.getElementById('result');
+  const form = document.getElementById('download-form');
+
+  // Mostrar estado de carga
+  statusDiv.classList.remove('d-none');
+  resultDiv.classList.add('d-none');
+  form.classList.add('d-none');
+
+  try {
+    const response = await fetch('{{ url_for("datamanagement.check_new_data") }}');
+    const data = await response.json();
+    statusDiv.classList.add('d-none');
+
+    if (data.success) {
+      resultDiv.classList.remove('d-none', 'alert-danger');
+      resultDiv.classList.add('alert-success');
+      resultDiv.innerHTML = `<strong>Archivo disponible:</strong> ${data.latest_file}`;
+      form.classList.remove('d-none');
+    } else {
+      resultDiv.classList.remove('d-none', 'alert-success');
+      resultDiv.classList.add('alert-danger');
+      resultDiv.textContent = data.message || 'No se encontró archivo válido.';
+    }
+  } catch (err) {
+    statusDiv.classList.add('d-none');
+    resultDiv.classList.remove('d-none', 'alert-success');
+    resultDiv.classList.add('alert-danger');
+    resultDiv.textContent = 'Error al verificar nuevos datos.';
+    console.error(err);
+  }
+});
+</script>
+{% endblock %}
