@@ -217,6 +217,12 @@
             >
               <span style="margin-left: 20px">Veredas</span>
             </a>
+            <a
+              class="nav-link {% if active_page == 'farm' %}active{% endif %}"
+              href="{{ url_for('farm.list_farms') }}"
+            >
+              <span style="margin-left: 20px">Fincas</span>
+            </a>
           </div>
         </div>
         <a class="nav-link" href="#"
@@ -292,6 +298,11 @@
               class="nav-link text-white ps-4 {% if active_page == 'adm3' %}active{% endif %}"
               href="{{ url_for('adm3.list_adm3') }}"
               >Veredas</a
+            >
+            <a
+              class="nav-link text-white ps-4 {% if active_page == 'farm' %}active{% endif %}"
+              href="{{ url_for('farm.list_farms') }}"
+              >Fincas</a
             >
           </div>
           <a class="nav-link text-white mt-3" href="#"

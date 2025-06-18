@@ -1,0 +1,110 @@
+<!-- Modal: Agregar Nueva Finca -->
+<div
+  class="modal fade"
+  id="addFarmModal"
+  tabindex="-1"
+  aria-labelledby="createFarmModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg">
+    <form
+      method="POST"
+      action="{{ url_for('farm.list_farms') }}"
+      class="modal-content"
+    >
+      {{ form.hidden_tag() }}
+      <div class="modal-header">
+        <h5 class="modal-title" id="createFarmModalLabel">
+          Agregar Nueva Finca
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3">
+          {{ form.adm3_id.label(class="form-label") }} {{
+          form.adm3_id(class="form-select") }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.farm_source.label(class="form-label") }} {{
+          form.farm_source(class="form-select") }}
+        </div>
+
+        <label class="form-label">Códigos Externos</label>
+        <div id="ext-id-container">
+          {% for subform in form.ext_id %}
+          <div class="card mb-2 p-3 border">
+            <div class="row g-2 align-items-end">
+              <div class="col-md-6">
+                {{ subform.source(class="form-select") }}
+              </div>
+              <div class="col-md-5">
+                {{ subform.ext_code(class="form-control") }}
+              </div>
+              <div class="col-md-1">
+                <button type="button" class="btn btn-danger remove-entry">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <button type="button" class="btn btn-secondary mt-2" id="add-ext-id">
+          <i class="fas fa-plus"></i> Agregar otro código
+        </button>
+        <div class="form-check mb-3 pt-3">
+          {{ form.enable(class="form-check-input") }} {{
+          form.enable.label(class="form-check-label") }}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        {{ form.submit(class="btn btn-success") }}
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("ext-id-container");
+    const addBtn = document.getElementById("add-ext-id");
+
+    addBtn.addEventListener("click", function () {
+      const count = container.querySelectorAll(".card").length;
+      const prototype = container.querySelector(".card").cloneNode(true);
+
+      prototype.querySelectorAll("input, select").forEach((input) => {
+        input.name = input.name.replace(/\d+/, count);
+        input.id = input.id.replace(/\d+/, count);
+        if (input.tagName === "SELECT") {
+          input.selectedIndex = 0;
+        } else {
+          input.value = "";
+        }
+      });
+
+      container.appendChild(prototype);
+    });
+
+    container.addEventListener("click", function (e) {
+      if (e.target.closest(".remove-entry")) {
+        const allCards = container.querySelectorAll(".card");
+        if (allCards.length > 1) {
+          e.target.closest(".card").remove();
+        }
+      }
+    });
+  });
+</script>

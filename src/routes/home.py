@@ -57,7 +57,7 @@ def login():
     return render_template('login.html', form=form)
 
 @bp.route('/logout')
-#@token_required
+@token_required
 def logout():
     # Limpiar la sesión
     session.pop('access_token', None)
@@ -68,6 +68,6 @@ def logout():
     return redirect(url_for('home_bp.login'))
 
 @bp.route('/home')
-#@token_required
+@token_required
 def home():
     return render_template('home.html')

@@ -15,7 +15,7 @@ if os.getenv('DEBUG', 'true').lower() == 'true':
     config['GEOSERVER_USER'] = 'admin'
     config['GEOSERVER_PWD'] = 'geoserver'
     config['GEOSERVER_URL'] = 'http://localhost:8600/geoserver/rest/'
-    config['API_BASE_URL'] = 'http://localhost:5000/api'
+    config['API_BASE_URL'] = 'http://127.0.0.1:8000'
 
 else:
     # Parámetros desde variables de entorno para producción

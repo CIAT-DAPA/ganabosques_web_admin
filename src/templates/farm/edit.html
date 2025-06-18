@@ -1,0 +1,91 @@
+<!-- Modal Editar Finca -->
+<div class="modal fade" id="editFarmModal{{ farm.id }}" tabindex="-1" aria-labelledby="editFarmModalLabel{{ farm.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form method="POST" action="{{ url_for('farm.edit_farm', id=farm.id) }}" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editFarmModalLabel{{ farm.id }}">Editar Finca</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Vereda (ADM3) -->
+        <div class="mb-3">
+          <label for="adm3-id-{{ farm.id }}" class="form-label">Vereda (ADM3)</label>
+          <select name="adm3_id" id="adm3-id-{{ farm.id }}" class="form-select" required>
+            {% for adm3 in adm3_list %}
+              <option value="{{ adm3.id }}" {% if adm3.id|string == farm.adm3_id.id|string %}selected{% endif %}>
+                {{ adm3.full_name if adm3.full_name else adm3.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Fuente -->
+        <div class="mb-3">
+          <label for="farm-source-{{ farm.id }}" class="form-label">Fuente de la Finca</label>
+          <select name="farm_source" id="farm-source-{{ farm.id }}" class="form-select" required>
+            {% for fs in farm_sources %}
+              <option value="{{ fs.name }}" {% if fs.name == farm.farm_source.name %}selected{% endif %}>{{ fs.value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Códigos Externos -->
+        <label class="form-label">Códigos Externos</label>
+        <div id="ext-id-edit-container-{{ farm.id }}">
+          {% for ext in farm.ext_id %}
+          <div class="input-group mb-2">
+            <select name="ext_id_source[]" class="form-select me-2" required>
+              {% for s in source_enum %}
+                <option value="{{ s.name }}" {% if s.name == ext.source.name %}selected{% endif %}>{{ s.value }}</option>
+              {% endfor %}
+            </select>
+            <input type="text" name="ext_id_code[]" class="form-control" value="{{ ext.ext_code }}" required>
+            <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addExtIdField('{{ farm.id }}')">
+          <i class="fas fa-plus"></i> Agregar Código
+        </button>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="btn btn-success">
+          <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const sourceOptions = JSON.parse(`{{ source_enum | tojson | safe }}`);
+
+  function addExtIdField(farmId) {
+    const container = document.getElementById(`ext-id-edit-container-${farmId}`);
+    const div = document.createElement("div");
+    div.classList.add("input-group", "mb-2");
+
+    let selectHTML = `<select name="ext_id_source[]" class="form-select me-2" required>`;
+    sourceOptions.forEach(opt => {
+      selectHTML += `<option value="${opt.name}">${opt.value}</option>`;
+    });
+    selectHTML += `</select>`;
+
+    div.innerHTML = `
+      ${selectHTML}
+      <input type="text" name="ext_id_code[]" class="form-control" placeholder="Código externo" required>
+      <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+        <i class="fas fa-trash"></i>
+      </button>
+    `;
+
+    container.appendChild(div);
+  }
+</script>

@@ -12,75 +12,8 @@ class User(UserMixin):
         self.user_data = user_data or {}
     
     @staticmethod
-    # def authenticate(username, password):
-    #     """Autentica al usuario contra la API de Keycloak"""
-    #     try:
-    #         response = requests.post(
-    #             f"{config['API_BASE_URL']}/auth/login",
-    #             json={
-    #                 'username': username,
-    #                 'password': password
-    #             },
-    #             timeout=10
-    #         )
-    #         print(f"{config['API_BASE_URL']}/auth/login") 
-    #         print(f"Response status code: {response.status_code}")
-    #         print(f"Response content: {response.content}")
-    #         if response.status_code == 200:
-    #             data = response.json()
-    #             token = data.get('access_token') or data.get('token')
-    #             user_info = data.get('user', {})
-                
-    #             if token:
-    #                 # Crear usuario con el token
-    #                 user = User(
-    #                     id=user_info.get('id', username),
-    #                     username=username,
-    #                     email=user_info.get('email'),
-    #                     token=token,
-    #                     user_data=user_info
-    #                 )
-                    
-    #                 # Guardar token en sesión para uso posterior
-    #                 session['access_token'] = token
-    #                 session['user_data'] = user_info
-                    
-    #                 return user
-            
-    #         return None
-            
-    #     except requests.exceptions.RequestException as e:
-    #         current_app.logger.error(f"Error connecting to auth API: {e}")
-    #         return None
-    #     except Exception as e:
-    #         current_app.logger.error(f"Authentication error: {e}")
-    #         return None
-#inicia user temporal    
-    @staticmethod
     def authenticate(username, password):
-        """Autentica al usuario contra la API de Keycloak o con usuario quemado si no hay API"""
-        # Usuario y contraseña quemados
-        HARDCODED_USER = "admin"
-        HARDCODED_PASS = "admin123"
-        if username == HARDCODED_USER and password == HARDCODED_PASS:
-            user_info = {
-                "id": HARDCODED_USER,
-                "username": HARDCODED_USER,
-                "email": "admin@example.com",
-                "role": "admin"
-            }
-            token = "fake-token"
-            user = User(
-                id=user_info["id"],
-                username=user_info["username"],
-                email=user_info["email"],
-                token=token,
-                user_data=user_info
-            )
-            session['access_token'] = token
-            session['user_data'] = user_info
-            return user
-
+        """Autentica al usuario contra la API de Keycloak"""
         try:
             response = requests.post(
                 f"{config['API_BASE_URL']}/auth/login",
@@ -121,8 +54,8 @@ class User(UserMixin):
             return None
         except Exception as e:
             current_app.logger.error(f"Authentication error: {e}")
-            return None 
-#termina user temporal
+            return None
+
     @staticmethod
     def get(user_id):
         """Recupera usuario desde la sesión"""

@@ -15,6 +15,7 @@ from routes.adm1_routes import adm1_bp
 from routes.adm2_routes import adm2_bp
 from routes.adm3_routes import adm3_bp
 from routes.data_management import datamanagement_bp
+from routes.farm_routes import farm_bp
 
 
 
@@ -42,6 +43,7 @@ app.register_blueprint(adm1_bp)
 app.register_blueprint(adm2_bp)
 app.register_blueprint(adm3_bp)
 app.register_blueprint(datamanagement_bp)
+app.register_blueprint(farm_bp)
 
 # Ejecutar aplicación
 if __name__ == '__main__':
