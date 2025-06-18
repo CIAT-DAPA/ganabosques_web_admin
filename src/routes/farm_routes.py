@@ -17,16 +17,15 @@ def list_farms():
     form.load_adm3_choices()
 
     if form.validate_on_submit():
-        print("Formulario válido")
-
         adm3_ref = Adm3.objects(id=form.adm3_id.data).first()
 
-        ext_ids = []
-        for entry in form.ext_id.entries:
-            ext_ids.append(ExtIdFarm(
+        ext_ids = [
+            ExtIdFarm(
                 source=Source[entry.form.source.data],
                 ext_code=entry.form.ext_code.data
-            ))
+            )
+            for entry in form.ext_id.entries
+        ]
 
         new_farm = Farm(
             adm3_id=adm3_ref,
@@ -37,13 +36,9 @@ def list_farms():
         new_farm.save()
         flash('Finca creada correctamente.', 'success')
         return redirect(url_for('farm.list_farms'))
-    else:
-        print("Errores en el formulario:")
-        print(form.errors)
 
+    search = request.args.get('q', '').strip()
     query = Farm.objects()
-    search = request.args.get('search', '').strip()
-
     if search:
         query = query.filter(__raw__={
             "$or": [
@@ -53,15 +48,13 @@ def list_farms():
         })
 
     farms = query.order_by('-id')
-
     return render_template(
         'farm/list.html',
         farms=farms,
         form=form,
-        search=search,
         adm3_list=Adm3.objects(log__enable=True),
         farm_sources=FarmSource,
-        source_enum=[{"name": s.name, "value": s.value} for s in Source]  # ← clave correcta
+        source_enum=[{"name": s.name, "value": s.value} for s in Source]
     )
 
 
@@ -72,46 +65,45 @@ def edit_farm(id):
         flash('Finca no encontrada.', 'danger')
         return redirect(url_for('farm.list_farms'))
 
-    if request.method == 'POST':
-        adm3_id = request.form.get('adm3_id')
-        farm_source = request.form.get('farm_source')
-        ext_sources = request.form.getlist('ext_id_source[]')
-        ext_codes = request.form.getlist('ext_id_code[]')
+    form = FarmForm()
+    form.load_adm3_choices()
 
-        if not adm3_id or not farm_source or not ext_sources or not ext_codes:
-            flash("Todos los campos son obligatorios.", "danger")
-            return redirect(url_for('farm.list_farms'))
+    if request.method == 'GET':
+        form.adm3_id.data = str(farm.adm3_id.id) if farm.adm3_id else None
+        form.farm_source.data = farm.farm_source.name
+        form.enable.data = farm.log.enable if farm.log else True
+        form.ext_id.pop_entry()  # Quitar el inicial vacío
+        for ext in farm.ext_id:
+            form.ext_id.append_entry({
+                'source': ext.source.name,
+                'ext_code': ext.ext_code
+            })
 
-        if len(ext_sources) != len(ext_codes):
-            flash("Los códigos externos no coinciden.", "danger")
-            return redirect(url_for('farm.list_farms'))
-
+    if form.validate_on_submit():
         try:
-            ext_ids = []
-            for source, code in zip(ext_sources, ext_codes):
-                ext_ids.append(ExtIdFarm(
-                    source=Source[source],
-                    ext_code=code
-                ))
-
-            farm.adm3_id = Adm3.objects(id=adm3_id).first()
-            farm.farm_source = FarmSource[farm_source]
-            farm.ext_id = ext_ids
-
+            adm3_ref = Adm3.objects(id=form.adm3_id.data).first()
+            farm.adm3_id = adm3_ref
+            farm.farm_source = FarmSource[form.farm_source.data]
+            farm.ext_id = [
+                ExtIdFarm(
+                    source=Source[entry.form.source.data],
+                    ext_code=entry.form.ext_code.data
+                ) for entry in form.ext_id.entries
+            ]
             if not farm.log:
                 farm.log = Log(enable=True)
-            else:
-                farm.log.enable = True
-
+            farm.log.enable = form.enable.data
             farm.save()
             flash('Finca actualizada correctamente.', 'success')
+            return redirect(url_for('farm.list_farms'))
         except Exception as e:
-            flash(f'Ocurrió un error al actualizar: {str(e)}', 'danger')
+            flash(f'Error al actualizar: {str(e)}', 'danger')
 
-        return redirect(url_for('farm.list_farms'))
-
-    # Si es GET, solo carga los datos (modal se llena en el template)
-    return render_template('farm/edit.html', farm=farm)
+    return render_template(
+        'farm/edit.html',
+        form=form,
+        farm=farm
+    )
 
 
 @farm_bp.route('/farm/delete/<string:id>')

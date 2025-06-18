@@ -40,9 +40,9 @@
         </td>
         <td>{{ farm.farm_source.name }}</td>
         <td class="text-end">
-          <button class="btn btn-sm btn-outline-warning me-2" title="Editar" data-bs-toggle="modal" data-bs-target="#editFarmModal{{ farm.id }}">
+          <a href="{{ url_for('farm.edit_farm', id=farm.id) }}" class="btn btn-sm btn-outline-warning me-2" title="Editar">
             <i class="fas fa-pen"></i>
-          </button>
+          </a>
           {% if farm.log.enable %}
           <a href="{{ url_for('farm.delete_farm', id=farm.id) }}" class="btn btn-sm btn-outline-danger" title="Deshabilitar">
             <i class="fas fa-trash"></i>
@@ -62,11 +62,9 @@
   {% endif %}
 </div>
 
-<!-- Modales de edición fuera de la tabla -->
-{% for farm in farms %}
-  {% include 'farm/edit.html' with context %}
-{% endfor %}
+<!-- Eliminar modales de edición -->
+{# Ya no se incluyen los modales de edición aquí #}
 
-<!-- Modal de creación (ID AJUSTADO para coincidir con el botón) -->
+<!-- Modal de creación -->
 {% include 'farm/add.html' %}
 {% endblock %}

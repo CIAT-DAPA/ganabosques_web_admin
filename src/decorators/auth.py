@@ -9,7 +9,7 @@ def token_required(f):
         # Primero verificar si está autenticado (equivalente a @login_required)
         if not current_user.is_authenticated:
             flash('Please log in to access this page.', 'info')
-            return redirect(url_for('main.login'))
+            return redirect(url_for('home_bp.login'))
         
         # Luego validar que el token siga siendo válido
         if not current_user.validate_token():
@@ -17,7 +17,7 @@ def token_required(f):
             session.pop('access_token', None)
             session.pop('user_data', None)
             flash('Session expired. Please login again.', 'warning')
-            return redirect(url_for('main.login'))
+            return redirect(url_for('home_bp.login'))
             
         return f(*args, **kwargs)
     return decorated_function
@@ -28,6 +28,6 @@ def login_required_only(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Please log in to access this page.', 'info')
-            return redirect(url_for('main.login'))
+            return redirect(url_for('home_bp.login'))
         return f(*args, **kwargs)
     return decorated_function
