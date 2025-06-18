@@ -223,6 +223,12 @@
             >
               <span style="margin-left: 20px">Fincas</span>
             </a>
+            <a
+              class="nav-link {% if active_page == 'enterprise' %}active{% endif %}"
+              href="{{ url_for('enterprise.list_enterprise') }}"
+              >
+              <span style="margin-left: 20px">Empresas</span>
+            </a>
           </div>
         </div>
         <a class="nav-link" href="#"
@@ -303,6 +309,11 @@
               class="nav-link text-white ps-4 {% if active_page == 'farm' %}active{% endif %}"
               href="{{ url_for('farm.list_farms') }}"
               >Fincas</a
+            >
+            <a
+              class="nav-link text-white ps-4 {% if active_page == 'enterprise' %}active{% endif %}"
+              href="{{ url_for('enterprise.list_enterprise') }}"
+              >Empresas</a
             >
           </div>
           <a class="nav-link text-white mt-3" href="#"
