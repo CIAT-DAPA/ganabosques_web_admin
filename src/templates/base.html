@@ -229,6 +229,12 @@
               >
               <span style="margin-left: 20px">Empresas</span>
             </a>
+            <a
+              class="nav-link {% if active_page == 'configuration' %}active{% endif %}"
+              href="{{ url_for('configuration.list_configuration') }}"
+              >
+              <span style="margin-left: 20px">Configuración</span>
+            </a>
           </div>
         </div>
         <a class="nav-link" href="#"
@@ -314,6 +320,11 @@
               class="nav-link text-white ps-4 {% if active_page == 'enterprise' %}active{% endif %}"
               href="{{ url_for('enterprise.list_enterprise') }}"
               >Empresas</a
+            >
+              <a
+              class="nav-link text-white ps-4 {% if active_page == 'configuration' %}active{% endif %}"
+              href="{{ url_for('configuration.list_configuration') }}"
+              >Configuración</a
             >
           </div>
           <a class="nav-link text-white mt-3" href="#"
