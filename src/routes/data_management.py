@@ -1,87 +1,95 @@
-import os
-import tempfile
-import requests
-from bs4 import BeautifulSoup
 from flask import Blueprint, render_template, request, send_file, flash, jsonify
+from ganabosques_orm.collections.configuration import Configuration
+from bson import ObjectId
+import requests, os, tempfile
+from bs4 import BeautifulSoup
 import rasterio
 from rasterio.shutil import copy as rio_copy
-import certifi
-
-# Blueprint
-datamanagement_bp = Blueprint('datamanagement', __name__, url_prefix='/data_management')
-
-# URL de la fuente
-DATA_URL = "https://bart.ideam.gov.co/smbyc/Cambio%20en%20la%20superficie%20cubierta%20por%20bosque%20natural/Capas/"
-
-# Función para obtener el último archivo .img subido
 import urllib3
+
+# Configuración del Blueprint
+datamanagement_bp = Blueprint('datamanagement', __name__, url_prefix='/data_management')
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def get_latest_img_file():
+# Obtener parámetros desde la configuración seleccionada
+def get_parameters(config):
+    url = next((p.value for p in config.parameters if p.key == 'url'), None)
+    ext = next((p.value for p in config.parameters if p.key == 'extension'), None)
+    return url, ext
+
+# Obtener el archivo más reciente disponible con la extensión indicada
+def get_latest_file(url, extension):
     try:
-        response = requests.get(DATA_URL, verify=False)  # ⚠️ SOLO DESARROLLO
+        response = requests.get(url, verify=False)
         soup = BeautifulSoup(response.text, "html.parser")
-
-        img_files = [
-            link.get('href') for link in soup.find_all('a')
-            if link.get('href') and link.get('href').endswith('.img')
-        ]
-
-        if not img_files:
-            return None
-
-        sorted_files = sorted(img_files, reverse=True)
-        return sorted_files[0]
+        files = [a.get('href') for a in soup.find_all('a') if a.get('href', '').endswith(extension)]
+        return sorted(files, reverse=True)[0] if files else None
     except Exception as e:
-        print("Error al obtener archivos:", e)
+        print("Error:", e)
         return None
 
-# Función para descargar un archivo
-def download_file_from_url(file_name):
-    url = f"{DATA_URL}{file_name}"
-    response = requests.get(url, stream=True, verify=False) 
+# Descargar archivo desde URL
+def download_file(url, filename):
+    response = requests.get(f"{url}{filename}", stream=True, verify=False)
     if response.status_code != 200:
-        raise Exception(f"No se pudo descargar el archivo: {file_name}")
+        raise Exception(f"No se pudo descargar el archivo: {filename}")
+    path = os.path.join(tempfile.gettempdir(), filename)
+    with open(path, 'wb') as f:
+        for chunk in response.iter_content(8192): f.write(chunk)
+    return path
 
-    tmp_dir = tempfile.gettempdir()
-    file_path = os.path.join(tmp_dir, file_name)
-    with open(file_path, 'wb') as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
-    return file_path
-
-# Función para convertir .img a .tiff usando rasterio
-def convert_img_to_tiff_with_rasterio(input_img_path):
-    output_path = input_img_path.replace(".img", ".tiff")
-    with rasterio.open(input_img_path) as src:
+# Convertir .img a .tiff usando rasterio
+def convert_to_tiff(input_path):
+    output_path = input_path.replace(".img", ".tiff")
+    with rasterio.open(input_path) as src:
         profile = src.profile.copy()
         profile.update(driver="GTiff", compress="lzw")
         rio_copy(src, output_path, **profile)
     return output_path
 
-# Página principal (GET para mostrar, POST para descargar y convertir)
+# Vista principal para gestión de datos
 @datamanagement_bp.route('/data', methods=['GET', 'POST'])
 def data_management():
-    latest_file = get_latest_img_file()
-    if not latest_file:
-        flash("No se pudo obtener el archivo más reciente.", "danger")
-        return render_template("data_management.html", latest_file=None, active_page='data_management')
+    configs = Configuration.objects(log__enable=True)
 
     if request.method == 'POST':
+        config_id = request.form.get("config_id")
+        selected_config = Configuration.objects.get(id=ObjectId(config_id))
+        url, ext = get_parameters(selected_config)
+
+        latest_file = get_latest_file(url, ext)
+        if not latest_file:
+            flash("No se encontró archivo reciente.", "warning")
+            return render_template("data_management.html", configurations=configs, active_page="data_management")
+
         try:
-            img_path = download_file_from_url(latest_file)
-            tiff_path = convert_img_to_tiff_with_rasterio(img_path)
-            return send_file(tiff_path, as_attachment=True, download_name=os.path.basename(tiff_path))
+            file_path = download_file(url, latest_file)
+            if ext == ".img":
+                file_path = convert_to_tiff(file_path)
+            return send_file(file_path, as_attachment=True, download_name=os.path.basename(file_path))
         except Exception as e:
             print("Error durante el proceso:", e)
-            flash("Ocurrió un error al descargar o convertir el archivo.", "danger")
+            flash("Ocurrió un error en el proceso.", "danger")
 
-    return render_template("data_management.html", latest_file=latest_file, active_page='data_management')
+    return render_template("data_management.html", configurations=configs, active_page="data_management")
 
-# Ruta para validación desde JS
+# Ruta auxiliar para validación por AJAX
 @datamanagement_bp.route('/check', methods=['GET'])
 def check_new_data():
-    latest_file = get_latest_img_file()
+    config_id = request.args.get("config_id")
+    if not config_id:
+        return jsonify({"success": False, "message": "No se proporcionó configuración."}), 400
+
+    config = Configuration.objects(id=ObjectId(config_id), log__enable=True).first()
+    if not config:
+        return jsonify({"success": False, "message": "Configuración inválida o deshabilitada."}), 404
+
+    url, ext = get_parameters(config)
+    if not url or not ext:
+        return jsonify({"success": False, "message": "Faltan parámetros en la configuración."}), 400
+
+    latest_file = get_latest_file(url, ext)
     if latest_file:
         return jsonify({"success": True, "latest_file": latest_file})
-    return jsonify({"success": False, "message": "No se encontró archivo .img válido."}), 404
+    else:
+        return jsonify({"success": False, "message": "No se encontró archivo válido con extensión " + ext}), 404

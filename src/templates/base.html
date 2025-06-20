@@ -25,6 +25,21 @@
         padding-top: 56px; /* para evitar solapamiento de navbar */
       }
 
+      #flash-messages .alert {
+  animation: slideInRight 0.4s ease;
+}
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+
       .sidebar {
         background-color: #343a40;
         width: 240px;
@@ -226,13 +241,13 @@
             <a
               class="nav-link {% if active_page == 'enterprise' %}active{% endif %}"
               href="{{ url_for('enterprise.list_enterprise') }}"
-              >
+            >
               <span style="margin-left: 20px">Empresas</span>
             </a>
             <a
               class="nav-link {% if active_page == 'configuration' %}active{% endif %}"
               href="{{ url_for('configuration.list_configuration') }}"
-              >
+            >
               <span style="margin-left: 20px">Configuración</span>
             </a>
           </div>
@@ -321,7 +336,7 @@
               href="{{ url_for('enterprise.list_enterprise') }}"
               >Empresas</a
             >
-              <a
+            <a
               class="nav-link text-white ps-4 {% if active_page == 'configuration' %}active{% endif %}"
               href="{{ url_for('configuration.list_configuration') }}"
               >Configuración</a
@@ -336,7 +351,38 @@
     </div>
 
     <!-- Contenido principal -->
-    <div class="content">{% block content %}{% endblock %}</div>
+    <div class="content">
+      <div
+        id="flash-messages"
+        style="
+          position: fixed;
+          top: 70px;
+          right: 20px;
+          z-index: 1055;
+          max-width: 400px;
+        "
+      >
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %} {% for category, message in messages %} {% set icon = {
+        'success': 'fa-circle-check', 'danger': 'fa-circle-xmark', 'warning':
+        'fa-triangle-exclamation', 'info': 'fa-circle-info' }[category] %}
+        <div
+          class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-2"
+          role="alert"
+        >
+          <i class="fas {{ icon }} me-2"></i> {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endfor %} {% endif %} {% endwith %}
+      </div>
+
+      {% block content %}{% endblock %}
+    </div>
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -362,7 +408,16 @@
         if (window.jQuery && $.fn.selectpicker) {
           $(".selectpicker").selectpicker();
         }
+
+        // Cerrar automáticamente los mensajes flash luego de 6 segundos
+        setTimeout(() => {
+          document.querySelectorAll('.alert-dismissible').forEach(alert => {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close();
+          });
+        }, 6000);
       });
+
     </script>
   </body>
 </html>
