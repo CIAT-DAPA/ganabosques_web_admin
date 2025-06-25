@@ -9,7 +9,7 @@
   </p>
 
   <!-- Selección de configuración -->
-  <form id="config-selection-form" method="POST" action="{{ url_for('datamanagement.data_management') }}">
+  <form id="config-selection-form">
     <div class="mb-3">
       <label for="config_id" class="form-label">Selecciona una configuración habilitada:</label>
       <select name="config_id" id="config_id" class="form-select" required>
@@ -35,13 +35,29 @@
 
     <div id="result" class="alert d-none" role="alert"></div>
 
-    <!-- Botón para enviar POST -->
+    <!-- Botón para descargar archivo -->
     <div id="download-container" class="d-none mt-3">
-      <button type="submit" class="btn btn-success">
+      <button id="download-button" type="button" class="btn btn-success">
         <i class="fas fa-download me-2"></i>Descargar archivo
       </button>
     </div>
+
+    <!-- Loader de descarga -->
+    <div id="download-status" class="my-3 d-none">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Descargando...</span>
+      </div>
+      <span class="ms-2">Descargando archivo, por favor espera...</span>
+    </div>
   </form>
+
+  <!-- Mensaje después de descarga exitosa -->
+  {% if show_import_message %}
+  <div class="alert alert-info mt-4" role="alert">
+    <strong>El archivo se ha descargado correctamente.</strong><br>
+    Ahora puedes ir al módulo <strong>Importar Datos Espaciales</strong> y subirlo en la opción <strong>Deforestación Anual</strong>.
+  </div>
+  {% endif %}
 </div>
 
 <script>
@@ -50,6 +66,8 @@
   const statusDiv = document.getElementById('status');
   const resultDiv = document.getElementById('result');
   const downloadContainer = document.getElementById('download-container');
+  const downloadButton = document.getElementById('download-button');
+  const downloadStatus = document.getElementById('download-status');
 
   // Activar botón solo si hay selección
   select.addEventListener('change', function () {
@@ -58,6 +76,7 @@
     downloadContainer.classList.add('d-none');
   });
 
+  // Buscar nuevos datos disponibles
   checkButton.addEventListener('click', async function () {
     if (!select.value) return;
 
@@ -89,5 +108,50 @@
       console.error(err);
     }
   });
+
+// Descargar archivo con loader
+downloadButton?.addEventListener('click', async function () {
+  const configId = select?.value;
+  if (!configId) return;
+
+  downloadStatus.classList.remove('d-none');
+
+  try {
+    const formData = new FormData();
+    formData.append('config_id', configId);
+
+    const response = await fetch(`{{ url_for("datamanagement.download_file_route") }}`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) throw new Error("No se pudo descargar el archivo");
+
+    const blob = await response.blob();
+    const filename = response.headers.get("Content-Disposition")?.split("filename=")[1] || "archivo.tiff";
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename.replaceAll('"', '');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    // Mostrar mensaje directamente sin recargar
+    resultDiv.classList.remove('alert-danger', 'd-none');
+    resultDiv.classList.add('alert-info');
+    resultDiv.innerHTML = `
+      <strong>El archivo se ha descargado correctamente.</strong><br>
+      Ahora puedes ir al módulo <strong>Importar Datos Espaciales</strong> y subirlo en la opción <strong>Deforestación Anual</strong>.
+    `;
+
+  } catch (err) {
+    alert("⚠️ Error al descargar el archivo.");
+    console.error(err);
+  } finally {
+    downloadStatus.classList.add('d-none');
+  }
+});
 </script>
 {% endblock %}

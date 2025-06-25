@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, send_file, flash, jsonify
+from flask import Blueprint, render_template, request, send_file, flash, jsonify, make_response
 from ganabosques_orm.collections.configuration import Configuration
 from bson import ObjectId
 import requests, os, tempfile
@@ -35,7 +35,8 @@ def download_file(url, filename):
         raise Exception(f"No se pudo descargar el archivo: {filename}")
     path = os.path.join(tempfile.gettempdir(), filename)
     with open(path, 'wb') as f:
-        for chunk in response.iter_content(8192): f.write(chunk)
+        for chunk in response.iter_content(8192):
+            f.write(chunk)
     return path
 
 # Convertir .img a .tiff usando rasterio
@@ -48,30 +49,37 @@ def convert_to_tiff(input_path):
     return output_path
 
 # Vista principal para gestión de datos
-@datamanagement_bp.route('/data', methods=['GET', 'POST'])
+@datamanagement_bp.route('/data', methods=['GET'])
 def data_management():
     configs = Configuration.objects(log__enable=True)
+    return render_template("data_management.html", configurations=configs, active_page="data_management")
 
-    if request.method == 'POST':
-        config_id = request.form.get("config_id")
+# Nueva ruta para manejar la descarga vía JavaScript
+@datamanagement_bp.route('/download', methods=['POST'])
+def download_file_route():
+    config_id = request.form.get("config_id")
+    if not config_id:
+        return "Configuración no válida", 400
+
+    try:
         selected_config = Configuration.objects.get(id=ObjectId(config_id))
         url, ext = get_parameters(selected_config)
 
         latest_file = get_latest_file(url, ext)
         if not latest_file:
-            flash("No se encontró archivo reciente.", "warning")
-            return render_template("data_management.html", configurations=configs, active_page="data_management")
+            return "No se encontró archivo reciente", 404
 
-        try:
-            file_path = download_file(url, latest_file)
-            if ext == ".img":
-                file_path = convert_to_tiff(file_path)
-            return send_file(file_path, as_attachment=True, download_name=os.path.basename(file_path))
-        except Exception as e:
-            print("Error durante el proceso:", e)
-            flash("Ocurrió un error en el proceso.", "danger")
+        file_path = download_file(url, latest_file)
+        if ext == ".img":
+            file_path = convert_to_tiff(file_path)
 
-    return render_template("data_management.html", configurations=configs, active_page="data_management")
+        response = make_response(send_file(file_path, as_attachment=True, download_name=os.path.basename(file_path)))
+        response.headers['X-Import-Success'] = 'true'
+        return response
+
+    except Exception as e:
+        print("Error durante el proceso:", e)
+        return "Error en la descarga", 500
 
 # Ruta auxiliar para validación por AJAX
 @datamanagement_bp.route('/check', methods=['GET'])
@@ -92,4 +100,4 @@ def check_new_data():
     if latest_file:
         return jsonify({"success": True, "latest_file": latest_file})
     else:
-        return jsonify({"success": False, "message": "No se encontró archivo válido con extensión " + ext}), 404
+        return jsonify({"success": False, "message": f"No se encontró archivo válido con extensión {ext}"}), 404
