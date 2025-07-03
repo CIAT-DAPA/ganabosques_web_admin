@@ -1,114 +1,28 @@
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Inicio de sesión - GanaBosques</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <style>
-      body {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: row;
-      }
+{% extends 'base.html' %} {% block title %}{{('Login')}}{% endblock %} {% block
+content %}
+<div
+  class="container-fluid d-flex justify-content-center align-items-center min-vh-100"
+>
+  <div class="card shadow-lg" style="width: 100%; max-width: 400px">
+    <div class="card-body p-5">
+      <div class="text-center mb-4">
+        <h3 class="card-title">{{('Welcome')}}</h3>
+        <p class="text-muted">{{('Please sign in to continue')}}</p>
+      </div>
 
-      .login-container {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        background-color: #f8f9fa;
-      }
+      <div class="d-grid">
+        <a href="{{ url_for('home_bp.login') }}" class="btn btn-primary btn-lg">
+          <i class="fas fa-sign-in-alt me-2"></i>
+          {{('Sign in with Keycloak')}}
+        </a>
+      </div>
 
-      .login-box {
-        width: 100%;
-        max-width: 400px;
-      }
-
-      .illustration-container {
-        flex: 1;
-        background-image: url("/static/img/ganabosques_login.png");
-        background-size: cover;
-        background-position: center;
-        display: none;
-      }
-
-      @media (min-width: 768px) {
-        .illustration-container {
-          display: block;
-        }
-      }
-
-      .btn-dark {
-        background-color: #343a40;
-        border: none;
-      }
-
-      .btn-dark:hover {
-        background-color: #23272b;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Sección izquierda: Formulario -->
-    <div class="login-container">
-      <div class="login-box">
-        <h2 class="mb-3 fw-bold">Inicio de sesión</h2>
-        <p class="mb-4 text-muted">Web Administrativa de GanaBosques</p>
-
-        <form method="POST" action="">
-          {{ form.hidden_tag() }}
-
-          <!-- Username -->
-          <div class="mb-3">
-            <label for="username" class="form-label">
-              <i class="fas fa-user me-2"></i>{{form.username.label.text}}
-            </label>
-            {% if form.username.errors %} {{ form.username(class="form-control
-            is-invalid", id="username") }}
-            <div class="invalid-feedback">
-              {% for error in form.username.errors %}
-              <small>{{ error }}</small>
-              {% endfor %}
-            </div>
-            {% else %} {{ form.username(class="form-control", id="username") }}
-            {% endif %}
-          </div>
-
-          <!-- Password -->
-          <div class="mb-3">
-            <label for="password" class="form-label">
-              <i class="fas fa-lock me-2"></i>{{form.password.label.text}}
-            </label>
-            {% if form.password.errors %} {{ form.password(class="form-control
-            is-invalid", id="password") }}
-            <div class="invalid-feedback">
-              {% for error in form.password.errors %}
-              <small>{{ error }}</small>
-              {% endfor %}
-            </div>
-            {% else %} {{ form.password(class="form-control", id="password") }}
-            {% endif %}
-          </div>
-
-          <!-- Submit -->
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-sign-in-alt me-2"></i>
-              {{form.submit.label.text}}
-            </button>
-          </div>
-        </form>
+      <div class="text-center mt-3">
+        <small class="text-muted">
+          {{('You will be redirected to the secure login page')}}
+        </small>
       </div>
     </div>
-
-    <!-- Sección derecha: Imagen -->
-    <div class="illustration-container"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
-</html>
+  </div>
+</div>
+{% endblock %}

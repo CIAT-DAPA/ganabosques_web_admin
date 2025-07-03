@@ -17,8 +17,14 @@ if os.getenv('DEBUG', 'true').lower() == 'true':
     config['GEOSERVER_URL'] = 'http://localhost:8600/geoserver/rest/'
     config['API_BASE_URL'] = 'http://127.0.0.1:8000'
 
+    # Keycloak desarrollo
+    config['KEYCLOAK_SERVER_URL'] = 'http://localhost:8080'
+    config['KEYCLOAK_REALM'] = 'GanaBosques'
+    config['KEYCLOAK_CLIENT_ID'] = 'GanaBosques'
+    config['KEYCLOAK_CLIENT_SECRET'] = 'your-client-secret'
+
 else:
-    # Parámetros desde variables de entorno para producción
+    # Parámetros de producción
     config['DEBUG'] = False
     config['PORT'] = int(os.getenv('PORT', 5000))
     config['HOST'] = os.getenv('HOST', '0.0.0.0')
@@ -30,6 +36,18 @@ else:
     config['GEOSERVER_PWD'] = os.getenv('GEOSERVER_PWD')
     config['GEOSERVER_URL'] = os.getenv('GEOSERVER_URL')
     config['API_BASE_URL'] = os.getenv('API_BASE_URL')
+
+    # Keycloak producción
+    config['KEYCLOAK_SERVER_URL'] = os.getenv('KEYCLOAK_SERVER_URL')
+    config['KEYCLOAK_REALM'] = os.getenv('KEYCLOAK_REALM')
+    config['KEYCLOAK_CLIENT_ID'] = os.getenv('KEYCLOAK_CLIENT_ID')
+    config['KEYCLOAK_CLIENT_SECRET'] = os.getenv('KEYCLOAK_CLIENT_SECRET')
+
+# URLs derivadas de Keycloak
+config['KEYCLOAK_AUTHORIZATION_URL'] = f"{config['KEYCLOAK_SERVER_URL']}/realms/{config['KEYCLOAK_REALM']}/protocol/openid-connect/auth"
+config['KEYCLOAK_TOKEN_URL'] = f"{config['KEYCLOAK_SERVER_URL']}/realms/{config['KEYCLOAK_REALM']}/protocol/openid-connect/token"
+config['KEYCLOAK_USERINFO_URL'] = f"{config['KEYCLOAK_SERVER_URL']}/realms/{config['KEYCLOAK_REALM']}/protocol/openid-connect/userinfo"
+config['KEYCLOAK_LOGOUT_URL'] = f"{config['KEYCLOAK_SERVER_URL']}/realms/{config['KEYCLOAK_REALM']}/protocol/openid-connect/logout"
 
 # Rutas de carpetas usadas en la app
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))

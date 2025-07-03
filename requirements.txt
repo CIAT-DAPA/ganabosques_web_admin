@@ -25,6 +25,7 @@ wtforms
 pandas
 beautifulsoup4>=4.9.0
 rasterio>=1.2.10
+authlib
 
 
 
