@@ -10,18 +10,23 @@ def list_adm1():
     form = Adm1Form()
 
     if form.validate_on_submit():
-        new_adm1 = Adm1(
-            name=form.name.data,
-            ext_id=form.ext_id.data,
-            ugg_size=form.ugg_size.data,
-            log=Log(enable=form.enable.data)
-        )
-        new_adm1.save()
-        flash('Departamento creado correctamente.', 'success')
-        return redirect(url_for('adm1.list_adm1'))
+        existing_adm = Adm1.objects(ext_id=form.ext_id.data).first()
+        if existing_adm:
+            flash('Ya existe un departamento con ese Ext ID.', 'danger')
+        else:
+            new_adm1 = Adm1(
+                name=form.name.data,
+                ext_id=form.ext_id.data,
+                ugg_size=form.ugg_size.data,
+                log=Log(enable=form.enable.data)
+            )
+            new_adm1.save()
+            flash('Departamento creado correctamente.', 'success')
+            return redirect(url_for('adm1.list_adm1'))
 
     adm1_list = Adm1.objects(log__enable=True)
     return render_template('adm1/list.html', adm1=adm1_list, form=form)
+
 
 @adm1_bp.route('/adm1/edit/<string:id>', methods=['GET', 'POST'])
 def edit_adm1(id):

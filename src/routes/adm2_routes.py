@@ -12,18 +12,23 @@ def list_adm2():
     form.load_adm1_choices()
 
     if form.validate_on_submit():
-        new_adm2 = Adm2(
-            name=form.name.data,
-            ext_id=form.ext_id.data,
-            adm1_id=Adm1.objects(id=form.adm1_id.data).first(),  # Asignar documento, no string
-            log=Log(enable=form.enable.data)
-        )
-        new_adm2.save()
-        flash('Municipio creado correctamente.', 'success')
-        return redirect(url_for('adm2.list_adm2'))
+        existing_adm2 = Adm2.objects(ext_id=form.ext_id.data).first()
+        if existing_adm2:
+            flash('Ya existe un municipio con ese Ext ID.', 'danger')
+        else:
+            new_adm2 = Adm2(
+                name=form.name.data,
+                ext_id=form.ext_id.data,
+                adm1_id=Adm1.objects(id=form.adm1_id.data).first(),  # Asignar documento, no string
+                log=Log(enable=form.enable.data)
+            )
+            new_adm2.save()
+            flash('Municipio creado correctamente.', 'success')
+            return redirect(url_for('adm2.list_adm2'))
 
     adm2_list = Adm2.objects(log__enable=True)
     return render_template('adm2/list.html', adm2=adm2_list, form=form)
+
 
 
 @adm2_bp.route('/adm2/edit/<string:id>', methods=['GET', 'POST'])

@@ -63,21 +63,21 @@
       <div class="modal-body">
         <div class="mb-3">
           {{ form.name.label(class="form-label") }}
-          {{ form.name(class="form-control") }}
+          {{ form.name(class="form-control", required=True) }}
           {% for error in form.name.errors %}
           <div class="text-danger">{{ error }}</div>
           {% endfor %}
         </div>
         <div class="mb-3">
           {{ form.ext_id.label(class="form-label") }}
-          {{ form.ext_id(class="form-control") }}
+          {{ form.ext_id(class="form-control", required=True, type="number") }}
           {% for error in form.ext_id.errors %}
           <div class="text-danger">{{ error }}</div>
           {% endfor %}
         </div>
         <div class="mb-3">
           {{ form.adm1_id.label(class="form-label") }}
-          {{ form.adm1_id(class="form-select") }}
+          {{ form.adm1_id(class="form-select", required=True) }}
           {% for error in form.adm1_id.errors %}
           <div class="text-danger">{{ error }}</div>
           {% endfor %}
