@@ -6,7 +6,7 @@ from ganabosques_orm.collections.adm2 import Adm2
 from ganabosques_orm.collections.adm3 import Adm3
 from ganabosques_orm.auxiliaries.log import Log
 import math
-
+from flask import flash
 def importar_desde_csv(path, nivel='todo'):
 
     # Intentar abrir con utf-8, y si falla, usar latin1
@@ -147,6 +147,7 @@ def procesar_fila_vereda(row, cache_adm2, cache_adm3):
         adm3.save()
         cache_adm3[cod_vereda] = adm3
         print(f"Vereda {cod_vereda} creada con nombre '{nombre_vereda}'.")
+    flash('Nivels administrativos creados con exito', 'sucess')
 
 def convert_id(value):
     try:
