@@ -7,24 +7,30 @@ from src.forms.adm3_form import Adm3Form
 adm3_bp = Blueprint('adm3', __name__)
 
 @adm3_bp.route('/adm3', methods=['GET', 'POST'])
+@adm3_bp.route('/adm3', methods=['GET', 'POST'])
 def list_adm3():
     form = Adm3Form()
     form.load_adm2_choices()
 
     if form.validate_on_submit():
-        adm2_ref = Adm2.objects(id=form.adm2_id.data).first()
-        new_adm3 = Adm3(
-            name=form.name.data,
-            ext_id=form.ext_id.data,
-            adm2_id=adm2_ref,
-            log=Log(enable=form.enable.data)
-        )
-        new_adm3.save()
-        flash('Vereda creada correctamente.', 'success')
-        return redirect(url_for('adm3.list_adm3'))
+        existing_adm3 = Adm3.objects(ext_id=form.ext_id.data).first()
+        if existing_adm3:
+            flash('Ya existe una vereda con ese Ext ID.', 'danger')
+        else:
+            adm2_ref = Adm2.objects(id=form.adm2_id.data).first()
+            new_adm3 = Adm3(
+                name=form.name.data,
+                ext_id=form.ext_id.data,
+                adm2_id=adm2_ref,
+                log=Log(enable=form.enable.data)
+            )
+            new_adm3.save()
+            flash('Vereda creada correctamente.', 'success')
+            return redirect(url_for('adm3.list_adm3'))
 
     adm3_list = Adm3.objects()
     return render_template('adm3/list.html', adm3=adm3_list, form=form)
+
 
 @adm3_bp.route('/adm3/edit/<string:id>', methods=['GET', 'POST'])
 def edit_adm3(id):
