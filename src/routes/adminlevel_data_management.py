@@ -68,6 +68,7 @@ def importar_desde_csv(path, nivel='todo'):
             procesar_fila_municipio(row, cache_adm1, cache_adm2)
         if nivel in ['vereda', 'todo']:
             procesar_fila_vereda(row, cache_adm2, cache_adm3)
+    flash('Niveles administrativos creados con éxito', 'success')
 
 def get_log():
     now = datetime.now()
@@ -147,7 +148,6 @@ def procesar_fila_vereda(row, cache_adm2, cache_adm3):
         adm3.save()
         cache_adm3[cod_vereda] = adm3
         print(f"Vereda {cod_vereda} creada con nombre '{nombre_vereda}'.")
-    flash('Nivels administrativos creados con exito', 'sucess')
 
 def convert_id(value):
     try:
