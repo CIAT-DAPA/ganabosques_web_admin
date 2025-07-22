@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Importar niveles administrativos{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2>Importar niveles administrativos</h2>
+      <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.nivel.label(class="form-label") }}
+          {{ form.nivel(class="form-control") }}
+          {% for error in form.nivel.errors %}
+          <div class="text-danger">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.archivo.label(class="form-label") }}
+          {{ form.archivo(class="form-control") }}
+          {% for error in form.archivo.errors %}
+          <div class="text-danger">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div>
+          {{ form.submit(class="btn btn-primary w-100") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

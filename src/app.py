@@ -19,7 +19,8 @@ from routes.adm3_routes import adm3_bp
 from routes.data_management import datamanagement_bp
 from routes.farm_routes import farm_bp
 from routes.enterprise_routes import enterprise_bp
-from routes.configuration_routes import configuration_bp    
+from routes.configuration_routes import configuration_bp
+from routes.adm_import import adm_bp
 
 oauth_service = OAuthService()
 
@@ -61,6 +62,7 @@ app.register_blueprint(datamanagement_bp)
 app.register_blueprint(farm_bp)
 app.register_blueprint(enterprise_bp)
 app.register_blueprint(configuration_bp)
+app.register_blueprint(adm_bp)
 
 # Ejecutar aplicación
 if __name__ == '__main__':
