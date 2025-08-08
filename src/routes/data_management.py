@@ -28,16 +28,23 @@ def get_latest_file(url, extension):
         print("Error:", e)
         return None
 
-# Descargar archivo desde URL
-def download_file(url, filename):
-    response = requests.get(f"{url}{filename}", stream=True, verify=False)
-    if response.status_code != 200:
-        raise Exception(f"No se pudo descargar el archivo: {filename}")
-    path = os.path.join(tempfile.gettempdir(), filename)
-    with open(path, 'wb') as f:
-        for chunk in response.iter_content(8192):
-            f.write(chunk)
-    return path
+# Descargar archivo desde URL con timeout
+def download_file(url, filename, timeout=30):
+    try:
+        response = requests.get(f"{url}{filename}", stream=True, verify=False, timeout=timeout)
+        if response.status_code != 200:
+            raise Exception(f"No se pudo descargar el archivo: {filename}")
+        
+        path = os.path.join(tempfile.gettempdir(), filename)
+        with open(path, 'wb') as f:
+            for chunk in response.iter_content(8192):
+                f.write(chunk)
+        return path
+    except requests.exceptions.Timeout:
+        raise Exception("La descarga del archivo superó el tiempo de espera.")
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Error durante la descarga del archivo: {e}")
+
 
 # Convertir .img a .tiff usando rasterio
 def convert_to_tiff(input_path):

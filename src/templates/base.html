@@ -26,24 +26,29 @@
       }
 
       #flash-messages .alert {
-  animation: slideInRight 0.4s ease;
-}
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
+        animation: slideInRight 0.4s ease;
+      }
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
 
       .sidebar {
         background-color: #343a40;
         width: 240px;
         transition: width 0.3s ease;
+        position: fixed; 
+        top: 56px; 
+        bottom: 0;
+        left: 0;
+        overflow-y: auto;
+        z-index: 1030;
       }
 
       .sidebar.collapsed {
@@ -103,6 +108,12 @@
       .content {
         flex-grow: 1;
         padding: 20px;
+        margin-left: 240px; 
+        transition: margin-left 0.3s ease;
+      }
+
+      .sidebar.collapsed ~ .content {
+        margin-left: 60px;
       }
 
       .toggle-btn {
@@ -245,6 +256,13 @@
               <span style="margin-left: 20px">Empresas</span>
             </a>
             <a
+              class="nav-link {% if active_page == 'admin_import' %}active{% endif %}"
+              href="{{ url_for('admin_import.importar_administrativos') }}"
+            >
+              <span style="margin-left: 20px">Importar DIVIPOLA</span>
+            </a>
+
+            <a
               class="nav-link {% if active_page == 'configuration' %}active{% endif %}"
               href="{{ url_for('configuration.list_configuration') }}"
             >
@@ -337,6 +355,13 @@
               >Empresas</a
             >
             <a
+              class="nav-link text-white ps-4 {% if active_page == 'admin_import' %}active{% endif %}"
+              href="{{ url_for('admin_import.importar_administrativos') }}"
+            >
+              Importar DIVIPOLA
+            </a>
+
+            <a
               class="nav-link text-white ps-4 {% if active_page == 'configuration' %}active{% endif %}"
               href="{{ url_for('configuration.list_configuration') }}"
               >Configuración</a
@@ -411,13 +436,12 @@
 
         // Cerrar automáticamente los mensajes flash luego de 6 segundos
         setTimeout(() => {
-          document.querySelectorAll('.alert-dismissible').forEach(alert => {
+          document.querySelectorAll(".alert-dismissible").forEach((alert) => {
             const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
             bsAlert.close();
           });
         }, 6000);
       });
-
     </script>
   </body>
 </html>
