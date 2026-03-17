@@ -24,8 +24,34 @@ def list_adm1():
             flash('Departamento creado correctamente.', 'success')
             return redirect(url_for('adm1.list_adm1'))
 
-    adm1_list = Adm1.objects(log__enable=True)
-    return render_template('adm1/list.html', adm1=adm1_list, form=form)
+    query_str = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    offset = (page - 1) * per_page
+    
+    query = Adm1.objects()
+
+    if query_str:
+        query = query.filter(__raw__={
+            "$or": [
+                {"name": {"$regex": query_str, "$options": "i"}},
+                {"ext_id": {"$regex": query_str, "$options": "i"}}
+            ]
+        })
+
+    total = query.count()
+    adm1_list = query.order_by('-id').skip(offset).limit(per_page)
+    total_pages = (total + per_page - 1) // per_page
+
+    return render_template(
+        'adm1/list.html', 
+        adm1=adm1_list, 
+        form=form,
+        page=page,
+        total_pages=total_pages,
+        search=query_str,
+        total=total
+    )
 
 
 @adm1_bp.route('/adm1/edit/<string:id>', methods=['GET', 'POST'])

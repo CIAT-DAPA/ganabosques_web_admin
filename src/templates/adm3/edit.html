@@ -17,7 +17,7 @@
       {{ form.name.label(class="form-label") }}
       {{ form.name(class="form-control", required=True) }}
       {% for error in form.name.errors %}
-        <div class="text-danger">{{ error }}</div>
+      <div class="text-danger">{{ error }}</div>
       {% endfor %}
     </div>
 
@@ -25,15 +25,28 @@
       {{ form.ext_id.label(class="form-label") }}
       {{ form.ext_id(class="form-control", required=True, type="number") }}
       {% for error in form.ext_id.errors %}
-        <div class="text-danger">{{ error }}</div>
+      <div class="text-danger">{{ error }}</div>
       {% endfor %}
     </div>
 
     <div class="mb-3">
+      <label class="form-label">Departamento (ADM1)</label>
+      <select id="adm1-select-edit" class="form-select" required>
+        <option value="">-- Seleccionar departamento --</option>
+        {% for adm1 in adm1_list %}
+        <option value="{{ adm1.id }}" {% if selected_adm1_id and adm1.id|string==selected_adm1_id|string %}selected{%
+          endif %}>{{ adm1.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
       {{ form.adm2_id.label(class="form-label") }}
-      {{ form.adm2_id(class="form-select", required=True) }}
+      <select name="adm2_id" id="adm2-select-edit" class="form-select" required>
+        <option value="">-- Primero selecciona un departamento --</option>
+      </select>
       {% for error in form.adm2_id.errors %}
-        <div class="text-danger">{{ error }}</div>
+      <div class="text-danger">{{ error }}</div>
       {% endfor %}
     </div>
 
@@ -46,4 +59,53 @@
     <a href="{{ url_for('adm3.list_adm3') }}" class="btn btn-outline-secondary">Cancelar</a>
   </form>
 </div>
+
+<script>
+  function setupCascadingDropdown(adm1SelectId, adm2SelectId, preselectedAdm2) {
+    const adm1Select = document.getElementById(adm1SelectId);
+    const adm2Select = document.getElementById(adm2SelectId);
+
+    if (!adm1Select || !adm2Select) return;
+
+    function loadAdm2(adm1Id) {
+      adm2Select.innerHTML = '<option value="">Cargando...</option>';
+
+      if (!adm1Id) {
+        adm2Select.innerHTML = '<option value="">-- Primero selecciona un departamento --</option>';
+        return;
+      }
+
+      fetch(`/api/adm2-by-adm1/${adm1Id}`)
+        .then(res => res.json())
+        .then(data => {
+          adm2Select.innerHTML = '<option value="">-- Seleccionar municipio --</option>';
+          data.forEach(adm2 => {
+            const opt = document.createElement('option');
+            opt.value = adm2.id;
+            opt.textContent = adm2.name;
+            if (preselectedAdm2 && adm2.id === preselectedAdm2) {
+              opt.selected = true;
+            }
+            adm2Select.appendChild(opt);
+          });
+        })
+        .catch(() => {
+          adm2Select.innerHTML = '<option value="">Error al cargar municipios</option>';
+        });
+    }
+
+    adm1Select.addEventListener('change', function () {
+      loadAdm2(this.value);
+    });
+
+    // Auto-cargar si ya hay un departamento seleccionado (edición)
+    if (adm1Select.value) {
+      loadAdm2(adm1Select.value);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    setupCascadingDropdown('adm1-select-edit', 'adm2-select-edit', '{{ selected_adm2_id or "" }}');
+  });
+</script>
 {% endblock %}

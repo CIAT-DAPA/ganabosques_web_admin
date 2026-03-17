@@ -3,7 +3,7 @@ from flask import session, redirect, url_for, flash
 from flask_login import current_user, logout_user
 
 def token_required(f):
-    """Decorador que valida autenticación y token válido"""
+    """Decorador que valida autenticación (solo session/login_required)"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # Primero verificar si está autenticado (equivalente a @login_required)
@@ -11,14 +11,8 @@ def token_required(f):
             flash('Please log in to access this page.', 'info')
             return redirect(url_for('home_bp.login'))
         
-        # Luego validar que el token siga siendo válido
-        if not current_user.validate_token():
-            logout_user()
-            session.pop('access_token', None)
-            session.pop('user_data', None)
-            flash('Session expired. Please login again.', 'warning')
-            return redirect(url_for('home_bp.login'))
-            
+        # El usuario indicó que ya no se debe validar el token en cada request
+        # validando contra la API, solo en el callback de login.
         return f(*args, **kwargs)
     return decorated_function
 

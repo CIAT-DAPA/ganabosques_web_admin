@@ -195,6 +195,38 @@ class OAuthService:
             logger.error(f"Error validating token: {e}")
             return False
     
+    def validate_token_with_api(self, access_token: str) -> dict:
+        """Validar token contra la API de GanaBosques y verificar si es admin"""
+        try:
+            api_base = current_app.config.get('API_BASE_URL')
+            if not api_base:
+                api_base = 'https://ganaapi.alliance.cgiar.org'
+            
+            validate_url = f"{api_base.rstrip('/')}/auth/token/validate"
+            
+            logger.info(f"Validating token against API: {validate_url}")
+            
+            response = requests.get(
+                validate_url,
+                headers={
+                    'Authorization': f'Bearer {access_token}',
+                    'accept': 'application/json'
+                },
+                timeout=15
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                logger.info(f"API validation response: valid={data.get('valid')}")
+                return data
+            else:
+                logger.error(f"API validation failed with status {response.status_code}: {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error validating token with API: {e}")
+            return None
+    
     def logout_url(self, redirect_uri: str = None, id_token: str = None) -> str:
         """Obtener URL de logout de Keycloak con id_token_hint"""
         logout_url = f"{current_app.config['KEYCLOAK_SERVER_URL']}/realms/{current_app.config['KEYCLOAK_REALM']}/protocol/openid-connect/logout"

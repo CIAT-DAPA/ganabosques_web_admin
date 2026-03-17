@@ -1,5 +1,5 @@
 from flask_login import UserMixin
-from flask import session
+from flask import session, current_app
 import logging
 
 logger = logging.getLogger(__name__)
@@ -173,14 +173,21 @@ class User(UserMixin):
             logger.warning("No access token found in session")
             return False
         
-        from src.services.oauth_service import OAuthService
-        oauth_service = OAuthService()
-        is_valid = oauth_service.validate_token(access_token)
-        
-        if not is_valid:
-            logger.warning(f"Token validation failed for user: {self.username}")
-        
-        return is_valid
+        try:
+            oauth_service = current_app.extensions.get('oauth_service')
+            if not oauth_service:
+                logger.warning("OAuth service not available for token validation")
+                return False
+            
+            is_valid = oauth_service.validate_token(access_token)
+            
+            if not is_valid:
+                logger.warning(f"Token validation failed for user: {self.username}")
+            
+            return is_valid
+        except Exception as e:
+            logger.error(f"Error during token validation: {e}")
+            return False
 
     # Métodos de compatibilidad para el modelo anterior
     @property

@@ -15,15 +15,34 @@
         </div>
 
         <div class="mb-3">
-          {{ form.adm2_id.label(class="form-label") }}
-          {{ form.adm2_id(class="form-select") }}
-          {% for error in form.adm2_id.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+          <label class="form-label">Departamento (ADM1)</label>
+          <select id="ent-adm1-add" class="form-select">
+            <option value="">-- Seleccionar departamento --</option>
+            {% for adm1 in adm1_list %}
+            <option value="{{ adm1.id }}">{{ adm1.name }}</option>
+            {% endfor %}
+          </select>
         </div>
 
         <div class="mb-3">
-          {{ form.type_enterprise.label(class="form-label") }}
-          {{ form.type_enterprise(class="form-select") }}
-          {% for error in form.type_enterprise.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+          {{ form.adm2_id.label(class="form-label") }}
+          <select name="adm2_id" id="ent-adm2-add" class="form-select" required>
+            <option value="">-- Primero selecciona un departamento --</option>
+          </select>
+          {% for error in form.adm2_id.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.type_enterprise.label(class="form-label") }}
+            {{ form.type_enterprise(class="form-select") }}
+            {% for error in form.type_enterprise.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.value_chain.label(class="form-label") }}
+            {{ form.value_chain(class="form-select") }}
+            {% for error in form.value_chain.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+          </div>
         </div>
 
         <div class="row">
@@ -68,3 +87,38 @@
     </form>
   </div>
 </div>
+
+<script>
+  function setupEntCascade(adm1Id, adm2Id, preAdm2) {
+    const adm1 = document.getElementById(adm1Id);
+    const adm2 = document.getElementById(adm2Id);
+    if (!adm1 || !adm2) return;
+
+    function loadAdm2(adm1Val) {
+      adm2.innerHTML = '<option value="">Cargando municipios...</option>';
+      if (!adm1Val) {
+        adm2.innerHTML = '<option value="">-- Primero selecciona un departamento --</option>';
+        return;
+      }
+      fetch('/api/adm2-by-adm1/' + adm1Val)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          adm2.innerHTML = '<option value="">-- Seleccionar municipio --</option>';
+          data.forEach(function (m) {
+            var o = document.createElement('option');
+            o.value = m.id; o.textContent = m.name;
+            if (preAdm2 && m.id === preAdm2) o.selected = true;
+            adm2.appendChild(o);
+          });
+          if (preAdm2) preAdm2 = null;
+        });
+    }
+
+    adm1.addEventListener('change', function () { loadAdm2(adm1.value); });
+    if (adm1.value) loadAdm2(adm1.value);
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    setupEntCascade('ent-adm1-add', 'ent-adm2-add', null);
+  });
+</script>

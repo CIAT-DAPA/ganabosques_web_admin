@@ -12,6 +12,7 @@ from wtforms.validators import DataRequired, Length
 from ganabosques_orm.collections.adm3 import Adm3
 from ganabosques_orm.enums.farmsource import FarmSource
 from ganabosques_orm.enums.source import Source  # ✅ CORREGIDO
+from ganabosques_orm.enums.valuechain import ValueChain
 
 # Subformulario embebido
 class ExtIdFarmField(Form):
@@ -32,6 +33,7 @@ class FarmForm(FlaskForm):
     adm3_id = SelectField(
         'Vereda (Adm3)',
         coerce=str,
+        validate_choice=False,  # Las opciones se cargan dinámicamente por JS
         validators=[DataRequired(message='Debes seleccionar una vereda.')]
     )
 
@@ -45,6 +47,12 @@ class FarmForm(FlaskForm):
         'Fuente',
         choices=[(item.name, item.value) for item in FarmSource],
         validators=[DataRequired(message='Debes seleccionar una fuente.')]
+    )
+
+    value_chain = SelectField(
+        'Cadena de Valor',
+        choices=[('', '-- Seleccionar --'), ('CACAO', 'Cacao'), ('LIVESTOCK', 'Ganadería')],
+        validators=[DataRequired(message='Debes seleccionar una cadena de valor.')]
     )
 
     enable = BooleanField('¿Está habilitada?', default=True)

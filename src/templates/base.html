@@ -1,447 +1,452 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Web Admin</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
-    <style>
-      body {
-        display: flex;
-        min-height: 100vh;
-        margin: 0;
-        flex-direction: row;
-        padding-top: 56px; /* para evitar solapamiento de navbar */
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Web Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      flex-direction: row;
+      padding-top: 56px;
+      background-color: #f4f6f9;
+    }
+
+    #flash-messages .alert {
+      animation: slideInRight 0.4s ease;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
       }
 
-      #flash-messages .alert {
-        animation: slideInRight 0.4s ease;
+      to {
+        transform: translateX(0);
+        opacity: 1;
       }
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #0f2027 0%, #1a3a4a 50%, #203a43 100%);
+      width: 240px;
+      transition: width 0.3s ease;
+      position: fixed;
+      top: 56px;
+      bottom: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 1030;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar.collapsed {
+      width: 60px;
+    }
+
+    .sidebar .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      color: rgba(255, 255, 255, 0.75);
+      border-radius: 8px;
+      margin: 2px 8px;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+
+    .sidebar .nav-link:hover {
+      color: #fff;
+      background: rgba(67, 206, 162, 0.15);
+    }
+
+    .sidebar .nav-link.active {
+      background: linear-gradient(135deg, rgba(67, 206, 162, 0.25), rgba(24, 90, 157, 0.2));
+      color: #43cea2;
+      font-weight: 500;
+    }
+
+    .sidebar .nav-link i {
+      font-size: 1rem;
+      width: 20px;
+      text-align: center;
+    }
+
+    .sidebar .nav-link span {
+      display: inline-block;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 200px;
+      opacity: 1;
+      visibility: visible;
+      transition: max-width 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, #0f2027, #203a43);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .navbar .navbar-brand {
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .navbar .nav-link {
+      color: #fff;
+    }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 6px 16px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-logout:hover {
+      background: rgba(252, 92, 101, 0.15);
+      color: #fc5c65;
+      border-color: rgba(252, 92, 101, 0.3);
+    }
+
+    .sidebar.collapsed .nav-link span {
+      max-width: 0;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .sidebar .submenu {
+      padding-left: 1rem;
+      transition: height 0.3s ease, opacity 0.3s ease;
+    }
+
+    .sidebar.collapsed .submenu {
+      display: none !important;
+    }
+
+    .content {
+      flex-grow: 1;
+      padding: 24px;
+      margin-left: 240px;
+      transition: margin-left 0.3s ease;
+      background-color: #f4f6f9;
+    }
+
+    .sidebar.collapsed~.content {
+      margin-left: 60px;
+    }
+
+    .toggle-btn {
+      background: transparent;
+      color: rgba(255, 255, 255, 0.6);
+      border: none;
+      width: 100%;
+      text-align: left;
+      padding: 12px 16px;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
+    /* Scrollbar sidebar */
+    .sidebar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    /* Estilos globales para hacer las tablas hermosas (Beautiful Tables) */
+    .table-responsive {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+      padding: 1rem;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .table {
+      margin-bottom: 0;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .table thead th {
+      border-bottom: 2px solid #eef2f5;
+      background-color: transparent !important;
+      color: #64748b;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1rem;
+      border-top: none;
+    }
+
+    .table tbody td {
+      padding: 1rem;
+      vertical-align: middle;
+      color: #334155;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.2s ease;
+      font-size: 0.95rem;
+    }
+
+    .table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    .table tbody tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Botones dentro de acciones de tabla */
+    .table .btn-sm {
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+      margin-right: 0.25rem;
+    }
+
+    @media (max-width: 767.98px) {
+      body {
+        flex-direction: column;
+        padding-top: 56px;
       }
 
       .sidebar {
-        background-color: #343a40;
-        width: 240px;
-        transition: width 0.3s ease;
-        position: fixed; 
-        top: 56px; 
-        bottom: 0;
-        left: 0;
-        overflow-y: auto;
-        z-index: 1030;
-      }
-
-      .sidebar.collapsed {
-        width: 60px;
-      }
-
-      .sidebar .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 16px;
-        color: #fff;
-      }
-
-      .nav-link:hover {
-        color: #c7c7c7;
-      }
-
-      .sidebar .nav-link.active {
-        background-color: #495057;
-      }
-
-      .sidebar .nav-link span {
-        display: inline-block;
-        overflow: hidden;
-        white-space: nowrap;
-        max-width: 200px;
-        opacity: 1;
-        visibility: visible;
-        transition: max-width 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-      }
-
-      .navbar {
-        background-color: #343a40;
-      }
-
-      .navbar .navbar-brand,
-      .navbar .nav-link {
-        color: #fff;
-      }
-
-      .sidebar.collapsed .nav-link span {
-        max-width: 0;
-        opacity: 0;
-        visibility: hidden;
-      }
-
-      .sidebar .submenu {
-        padding-left: 2rem;
-        transition: height 0.3s ease, opacity 0.3s ease;
-      }
-
-      .sidebar.collapsed .submenu {
         display: none !important;
       }
 
       .content {
-        flex-grow: 1;
-        padding: 20px;
-        margin-left: 240px; 
-        transition: margin-left 0.3s ease;
+        padding: 1rem;
+        margin-left: 0;
       }
+    }
+  </style>
+</head>
 
-      .sidebar.collapsed ~ .content {
-        margin-left: 60px;
-      }
+<body>
+  <!-- Navbar superior -->
+  <nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid">
+      <!-- Botón para sidebar móvil -->
+      <button class="btn btn-outline-light d-md-none me-2" type="button" data-bs-toggle="offcanvas"
+        data-bs-target="#mobileSidebar" aria-controls="mobileSidebar">
+        <i class="fas fa-bars"></i>
+      </button>
 
-      .toggle-btn {
-        background-color: #343a40;
-        color: #fff;
-        border: none;
-        width: 100%;
-        text-align: left;
-        padding: 10px 16px;
-      }
+      <a class="navbar-brand" href="{{ url_for('home_bp.home') }}">
+        Web Admin
+      </a>
 
-      .toggle-btn:hover {
-        background-color: #495057;
-      }
-
-      @media (max-width: 767.98px) {
-        body {
-          flex-direction: column;
-          padding-top: 56px;
-        }
-
-        .sidebar {
-          display: none !important;
-        }
-
-        .content {
-          padding: 1rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Navbar superior -->
-    <nav class="navbar navbar-expand-lg fixed-top">
-      <div class="container-fluid">
-        <!-- Botón para sidebar móvil -->
-        <button
-          class="btn btn-outline-light d-md-none me-2"
-          type="button"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#mobileSidebar"
-          aria-controls="mobileSidebar"
-        >
-          <i class="fas fa-bars"></i>
-        </button>
-
-        <a class="navbar-brand" href="{{ url_for('home_bp.home') }}">
-          Web Admin
+      <div class="d-flex ms-auto align-items-center text-white">
+        <i class="fas fa-user-circle me-2"></i>{{ current_user.username }} {%
+        if current_user.email %}
+        <!-- <small class="text-muted ms-1">({{ current_user.email }})</small> -->
+        {% endif %}
+        <a class="btn-logout ms-3 text-decoration-none" href="{{ url_for('home_bp.logout') }}">
+          <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
         </a>
-
-        <div class="d-flex ms-auto align-items-center text-white">
-          <i class="fas fa-user-circle me-2"></i>{{ current_user.username }} {%
-          if current_user.email %}
-          <!-- <small class="text-muted ms-1">({{ current_user.email }})</small> -->
-          {% endif %}
-          <a
-            class="btn btn-outline-light btn-sm ms-3"
-            href="{{ url_for('home_bp.logout') }}"
-          >
-            <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
-          </a>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Sidebar desktop -->
-    <nav id="sidebar" class="sidebar d-none d-md-block">
-      <button id="toggleSidebar" class="toggle-btn">☰</button>
-      <nav class="nav flex-column">
-        <a
-          class="nav-link {% if active_page == 'home' %}active{% endif %}"
-          href="{{ url_for('home_bp.home') }}"
-        >
-          <i class="fa-solid fa-house"></i><span>Inicio</span>
-        </a>
-        <a
-          class="nav-link {% if active_page == 'importar' %}active{% endif %}"
-          href="{{ url_for('spatial.upload_file') }}"
-        >
-          <i class="fa-solid fa-download"></i
-          ><span>Importar Datos Espaciales</span>
-        </a>
-        <a
-          class="nav-link {% if active_page == 'import_suppliers' %}active{% endif %}"
-          href="{{ url_for('suppliers.importar_proveedores') }}"
-        >
-          <i class="fa-solid fa-truck-fast"></i
-          ><span>Importar Proveedores</span>
-        </a>
-        <a
-          class="nav-link {% if active_page == 'data_management' %}active{% endif %}"
-          href="{{ url_for('datamanagement.data_management') }}"
-        >
-          <i class="fa-solid fa-database"></i><span>Consulta de Datos</span>
-        </a>
-        <div class="nav-item">
-          <a
-            class="nav-link {% if active_page in ['adm1', 'adm2', 'adm3'] %}active{% endif %}"
-            data-bs-toggle="collapse"
-            href="#divipolaSubmenu"
-            role="button"
-            aria-expanded="true"
-            aria-controls="divipolaSubmenu"
-          >
-            <i class="fa-solid fa-pen-to-square"></i
-            ><span>Gestión de Datos</span>
-          </a>
-          <div
-            class="submenu collapse {% if active_page in ['adm1', 'adm2', 'adm3'] %}show{% endif %}"
-            id="divipolaSubmenu"
-          >
-            <a
-              class="nav-link {% if active_page == 'adm1' %}active{% endif %}"
-              href="{{ url_for('adm1.list_adm1') }}"
-            >
-              <span style="margin-left: 20px">Departamentos</span>
-            </a>
-            <a
-              class="nav-link {% if active_page == 'adm2' %}active{% endif %}"
-              href="{{ url_for('adm2.list_adm2') }}"
-            >
-              <span style="margin-left: 20px">Municipios</span>
-            </a>
-            <a
-              class="nav-link {% if active_page == 'adm3' %}active{% endif %}"
-              href="{{ url_for('adm3.list_adm3') }}"
-            >
-              <span style="margin-left: 20px">Veredas</span>
-            </a>
-            <a
-              class="nav-link {% if active_page == 'farm' %}active{% endif %}"
-              href="{{ url_for('farm.list_farms') }}"
-            >
-              <span style="margin-left: 20px">Fincas</span>
-            </a>
-            <a
-              class="nav-link {% if active_page == 'enterprise' %}active{% endif %}"
-              href="{{ url_for('enterprise.list_enterprise') }}"
-            >
-              <span style="margin-left: 20px">Empresas</span>
-            </a>
-            <a
-              class="nav-link {% if active_page == 'admin_import' %}active{% endif %}"
-              href="{{ url_for('admin_import.importar_administrativos') }}"
-            >
-              <span style="margin-left: 20px">Importar DIVIPOLA</span>
-            </a>
-
-            <a
-              class="nav-link {% if active_page == 'configuration' %}active{% endif %}"
-              href="{{ url_for('configuration.list_configuration') }}"
-            >
-              <span style="margin-left: 20px">Configuración</span>
-            </a>
-          </div>
-        </div>
-        <a class="nav-link" href="#"
-          ><i class="fa-solid fa-user-gear"></i
-          ><span>Gestión de Usuarios</span></a
-        >
-      </nav>
-    </nav>
-
-    <!-- Sidebar móvil -->
-    <div
-      class="offcanvas offcanvas-start text-bg-dark"
-      tabindex="-1"
-      id="mobileSidebar"
-    >
-      <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title">Menú</h5>
-        <button
-          type="button"
-          class="btn-close btn-close-white"
-          data-bs-dismiss="offcanvas"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="offcanvas-body d-flex flex-column">
-        <nav class="nav flex-column">
-          <a
-            class="nav-link text-white {% if active_page == 'home' %}active{% endif %}"
-            href="{{ url_for('home_bp.home') }}"
-          >
-            <i class="fa-solid fa-house"></i> Inicio
-          </a>
-          <a
-            class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}"
-            href="{{ url_for('spatial.upload_file') }}"
-          >
-            <i class="fa-solid fa-download"></i> Importar Datos Espaciales
-          </a>
-          <a
-            class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}"
-            href="{{ url_for('suppliers.importar_proveedores') }}"
-          >
-            <i class="fa-solid fa-truck-fast"></i> Importar Proveedores
-          </a>
-          <a
-            class="nav-link text-white {% if active_page == 'data_management' %}active{% endif %}"
-            href="{{ url_for('datamanagement.data_management') }}"
-          >
-            <i class="fa-solid fa-database"></i> Consulta de Datos
-          </a>
-          <a
-            class="nav-link text-white"
-            data-bs-toggle="collapse"
-            href="#divipolaSubmenuMobile"
-            role="button"
-            aria-expanded="false"
-            aria-controls="divipolaSubmenuMobile"
-          >
-            <i class="fa-solid fa-pen-to-square"></i> Gestión de Datos
-          </a>
-          <div class="collapse" id="divipolaSubmenuMobile">
-            <a
-              class="nav-link text-white ps-4 {% if active_page == 'adm1' %}active{% endif %}"
-              href="{{ url_for('adm1.list_adm1') }}"
-              >Departamentos</a
-            >
-            <a
-              class="nav-link text-white ps-4 {% if active_page == 'adm2' %}active{% endif %}"
-              href="{{ url_for('adm2.list_adm2') }}"
-              >Municipios</a
-            >
-            <a
-              class="nav-link text-white ps-4 {% if active_page == 'adm3' %}active{% endif %}"
-              href="{{ url_for('adm3.list_adm3') }}"
-              >Veredas</a
-            >
-            <a
-              class="nav-link text-white ps-4 {% if active_page == 'farm' %}active{% endif %}"
-              href="{{ url_for('farm.list_farms') }}"
-              >Fincas</a
-            >
-            <a
-              class="nav-link text-white ps-4 {% if active_page == 'enterprise' %}active{% endif %}"
-              href="{{ url_for('enterprise.list_enterprise') }}"
-              >Empresas</a
-            >
-            <a
-              class="nav-link text-white ps-4 {% if active_page == 'admin_import' %}active{% endif %}"
-              href="{{ url_for('admin_import.importar_administrativos') }}"
-            >
-              Importar DIVIPOLA
-            </a>
-
-            <a
-              class="nav-link text-white ps-4 {% if active_page == 'configuration' %}active{% endif %}"
-              href="{{ url_for('configuration.list_configuration') }}"
-              >Configuración</a
-            >
-          </div>
-          <a class="nav-link text-white mt-3" href="#"
-            ><i class="fa-solid fa-user-gear"></i> Gestión Usuarios</a
-          >
-        </nav>
-        <hr class="bg-light" />
       </div>
     </div>
+  </nav>
 
-    <!-- Contenido principal -->
-    <div class="content">
-      <div
-        id="flash-messages"
-        style="
+  <!-- Sidebar desktop -->
+  <nav id="sidebar" class="sidebar d-none d-md-block">
+    <button id="toggleSidebar" class="toggle-btn">☰</button>
+    <nav class="nav flex-column">
+      <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home_bp.home') }}">
+        <i class="fa-solid fa-house"></i><span>Inicio</span>
+      </a>
+      <a class="nav-link {% if active_page == 'importar' %}active{% endif %}"
+        href="{{ url_for('spatial.upload_file') }}">
+        <i class="fa-solid fa-download"></i><span>Importar Datos Espaciales</span>
+      </a>
+      <a class="nav-link {% if active_page == 'import_suppliers' %}active{% endif %}"
+        href="{{ url_for('suppliers.importar_proveedores') }}">
+        <i class="fa-solid fa-truck-fast"></i><span>Importar Proveedores</span>
+      </a>
+      <a class="nav-link {% if active_page == 'data_management' %}active{% endif %}"
+        href="{{ url_for('datamanagement.data_management') }}">
+        <i class="fa-solid fa-database"></i><span>Consulta de Datos</span>
+      </a>
+      <div class="nav-item">
+        <a class="nav-link {% if active_page in ['adm1', 'adm2', 'adm3'] %}active{% endif %}" data-bs-toggle="collapse"
+          href="#divipolaSubmenu" role="button" aria-expanded="true" aria-controls="divipolaSubmenu">
+          <i class="fa-solid fa-pen-to-square"></i><span>Gestión de Datos</span>
+        </a>
+        <div class="submenu collapse {% if active_page in ['adm1', 'adm2', 'adm3'] %}show{% endif %}"
+          id="divipolaSubmenu">
+          <a class="nav-link {% if active_page == 'adm1' %}active{% endif %}" href="{{ url_for('adm1.list_adm1') }}">
+            <span style="margin-left: 20px">Departamentos</span>
+          </a>
+          <a class="nav-link {% if active_page == 'adm2' %}active{% endif %}" href="{{ url_for('adm2.list_adm2') }}">
+            <span style="margin-left: 20px">Municipios</span>
+          </a>
+          <a class="nav-link {% if active_page == 'adm3' %}active{% endif %}" href="{{ url_for('adm3.list_adm3') }}">
+            <span style="margin-left: 20px">Veredas</span>
+          </a>
+          <a class="nav-link {% if active_page == 'farm' %}active{% endif %}" href="{{ url_for('farm.list_farms') }}">
+            <span style="margin-left: 20px">Fincas</span>
+          </a>
+          <a class="nav-link {% if active_page == 'enterprise' %}active{% endif %}"
+            href="{{ url_for('enterprise.list_enterprise') }}">
+            <span style="margin-left: 20px">Empresas</span>
+          </a>
+          <a class="nav-link {% if active_page == 'admin_import' %}active{% endif %}"
+            href="{{ url_for('admin_import.importar_administrativos') }}">
+            <span style="margin-left: 20px">Importar DIVIPOLA</span>
+          </a>
+
+          <a class="nav-link {% if active_page == 'configuration' %}active{% endif %}"
+            href="{{ url_for('configuration.list_configuration') }}">
+            <span style="margin-left: 20px">Configuración</span>
+          </a>
+        </div>
+      </div>
+      <a class="nav-link {% if active_page == 'users' %}active{% endif %}" href="{{ url_for('user.list_users') }}"><i
+          class="fa-solid fa-user-gear"></i><span>Gestión de Usuarios</span></a>
+    </nav>
+  </nav>
+
+  <!-- Sidebar móvil -->
+  <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="mobileSidebar">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title">Menú</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+      <nav class="nav flex-column">
+        <a class="nav-link text-white {% if active_page == 'home' %}active{% endif %}"
+          href="{{ url_for('home_bp.home') }}">
+          <i class="fa-solid fa-house"></i> Inicio
+        </a>
+        <a class="nav-link text-white {% if active_page == 'importar' %}active{% endif %}"
+          href="{{ url_for('spatial.upload_file') }}">
+          <i class="fa-solid fa-download"></i> Importar Datos Espaciales
+        </a>
+        <a class="nav-link text-white {% if active_page == 'import_suppliers' %}active{% endif %}"
+          href="{{ url_for('suppliers.importar_proveedores') }}">
+          <i class="fa-solid fa-truck-fast"></i> Importar Proveedores
+        </a>
+        <a class="nav-link text-white {% if active_page == 'data_management' %}active{% endif %}"
+          href="{{ url_for('datamanagement.data_management') }}">
+          <i class="fa-solid fa-database"></i> Consulta de Datos
+        </a>
+        <a class="nav-link text-white" data-bs-toggle="collapse" href="#divipolaSubmenuMobile" role="button"
+          aria-expanded="false" aria-controls="divipolaSubmenuMobile">
+          <i class="fa-solid fa-pen-to-square"></i> Gestión de Datos
+        </a>
+        <div class="collapse" id="divipolaSubmenuMobile">
+          <a class="nav-link text-white ps-4 {% if active_page == 'adm1' %}active{% endif %}"
+            href="{{ url_for('adm1.list_adm1') }}">Departamentos</a>
+          <a class="nav-link text-white ps-4 {% if active_page == 'adm2' %}active{% endif %}"
+            href="{{ url_for('adm2.list_adm2') }}">Municipios</a>
+          <a class="nav-link text-white ps-4 {% if active_page == 'adm3' %}active{% endif %}"
+            href="{{ url_for('adm3.list_adm3') }}">Veredas</a>
+          <a class="nav-link text-white ps-4 {% if active_page == 'farm' %}active{% endif %}"
+            href="{{ url_for('farm.list_farms') }}">Fincas</a>
+          <a class="nav-link text-white ps-4 {% if active_page == 'enterprise' %}active{% endif %}"
+            href="{{ url_for('enterprise.list_enterprise') }}">Empresas</a>
+          <a class="nav-link text-white ps-4 {% if active_page == 'admin_import' %}active{% endif %}"
+            href="{{ url_for('admin_import.importar_administrativos') }}">
+            Importar DIVIPOLA
+          </a>
+
+          <a class="nav-link text-white ps-4 {% if active_page == 'configuration' %}active{% endif %}"
+            href="{{ url_for('configuration.list_configuration') }}">Configuración</a>
+        </div>
+        <a class="nav-link text-white mt-3 {% if active_page == 'users' %}active{% endif %}"
+          href="{{ url_for('user.list_users') }}"><i class="fa-solid fa-user-gear"></i> Gestión Usuarios</a>
+      </nav>
+      <hr class="bg-light" />
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="content">
+    <div id="flash-messages" style="
           position: fixed;
           top: 70px;
           right: 20px;
           z-index: 1055;
           max-width: 400px;
-        "
-      >
-        {% with messages = get_flashed_messages(with_categories=true) %} {% if
-        messages %} {% for category, message in messages %} {% set icon = {
-        'success': 'fa-circle-check', 'danger': 'fa-circle-xmark', 'warning':
-        'fa-triangle-exclamation', 'info': 'fa-circle-info' }[category] %}
-        <div
-          class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-2"
-          role="alert"
-        >
-          <i class="fas {{ icon }} me-2"></i> {{ message }}
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"
-          ></button>
-        </div>
-        {% endfor %} {% endif %} {% endwith %}
+        ">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %} {% set icon = {
+      'success': 'fa-circle-check', 'danger': 'fa-circle-xmark', 'warning':
+      'fa-triangle-exclamation', 'info': 'fa-circle-info' }[category] %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-2" role="alert">
+        <i class="fas {{ icon }} me-2"></i> {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
-
-      {% block content %}{% endblock %}
+      {% endfor %} {% endif %} {% endwith %}
     </div>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js"></script>
-    <script>
-      const toggleBtn = document.getElementById("toggleSidebar");
-      const sidebar = document.getElementById("sidebar");
+    {% block content %}{% endblock %}
+  </div>
 
-      toggleBtn?.addEventListener("click", () => {
-        sidebar.classList.toggle("collapsed");
-        localStorage.setItem(
-          "sidebarCollapsed",
-          sidebar.classList.contains("collapsed")
-        );
-      });
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js"></script>
+  <script>
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const sidebar = document.getElementById("sidebar");
 
-      document.addEventListener("DOMContentLoaded", () => {
-        if (localStorage.getItem("sidebarCollapsed") === "true") {
-          sidebar.classList.add("collapsed");
-        }
+    toggleBtn?.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+      localStorage.setItem(
+        "sidebarCollapsed",
+        sidebar.classList.contains("collapsed")
+      );
+    });
 
-        if (window.jQuery && $.fn.selectpicker) {
-          $(".selectpicker").selectpicker();
-        }
+    document.addEventListener("DOMContentLoaded", () => {
+      if (localStorage.getItem("sidebarCollapsed") === "true") {
+        sidebar.classList.add("collapsed");
+      }
 
-        // Cerrar automáticamente los mensajes flash luego de 6 segundos
-        setTimeout(() => {
-          document.querySelectorAll(".alert-dismissible").forEach((alert) => {
-            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-            bsAlert.close();
-          });
-        }, 6000);
-      });
-    </script>
-  </body>
+      if (window.jQuery && $.fn.selectpicker) {
+        $(".selectpicker").selectpicker();
+      }
+
+      // Cerrar automáticamente los mensajes flash luego de 6 segundos
+      setTimeout(() => {
+        document.querySelectorAll(".alert-dismissible").forEach((alert) => {
+          const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+          bsAlert.close();
+        });
+      }, 6000);
+    });
+  </script>
+</body>
+
 </html>

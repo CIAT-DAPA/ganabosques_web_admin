@@ -2,132 +2,132 @@
 content %}
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Empresas</h2>
-    <button
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#addEnterpriseModal"
-    >
+    <h2>Empresas <span class="badge bg-secondary fs-6">{{ total }} total</span></h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEnterpriseModal">
       <i class="fas fa-plus"></i> Agregar
     </button>
   </div>
 
   <!-- Buscador -->
-  <form
-    method="GET"
-    action="{{ url_for('enterprise.list_enterprise') }}"
-    class="row g-3 mb-4"
-  >
-    <div class="col-md-4">
-      <input
-        type="text"
-        name="q"
-        class="form-control"
-        placeholder="Buscar por nombre, municipio o código externo"
-        value="{{ request.args.get('q', '') }}"
-      />
-    </div>
-    <div class="col-auto">
-      <button type="submit" class="btn btn-outline-primary">
-        <i class="fas fa-search"></i> Buscar
-      </button>
-    </div>
-    <div class="col-auto">
-      <a
-        href="{{ url_for('enterprise.list_enterprise') }}"
-        class="btn btn-outline-secondary"
-      >
-        <i class="fas fa-undo"></i> Limpiar
-      </a>
+  <form method="GET" action="{{ url_for('enterprise.list_enterprise') }}" class="row g-3 mb-4">
+    <div class="col-md-5 d-flex gap-2">
+      <input type="text" name="q" class="form-control" placeholder="Buscar por nombre, municipio o código externo"
+        value="{{ search }}" />
+      <button type="submit" class="btn btn-outline-primary">Buscar</button>
+      {% if search %}
+      <a href="{{ url_for('enterprise.list_enterprise') }}" class="btn btn-outline-danger">Limpiar</a>
+      {% endif %}
     </div>
   </form>
 
   {% if enterprises %}
-  <table class="table table-hover align-middle">
-    <thead class="table-light">
-      <tr>
-        <th>Nombre</th>
-        <th>Municipio</th>
-        <th>Tipo</th>
-        <th>Código Externo</th>
-        <th>Latitud</th>
-        <th>Longitud</th>
-        <th>Estado</th>
-        <th class="text-end">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for ent in enterprises %}
-      <tr>
-        <td>{{ ent.name }}</td>
-        <td>{{ ent.adm2_id.name if ent.adm2_id else 'Sin municipio' }}</td>
-        <td>{{ ent.type_enterprise.name if ent.type_enterprise else '' }}</td>
-        <td>{{ ent.ext_id[0].ext_code if ent.ext_id else '' }}</td>
-        <td>{{ ent.latitude }}</td>
-        <td>{{ ent.longitud }}</td>
-        <td>{{ 'Habilitado' if ent.log.enable else 'Deshabilitado' }}</td>
-        <td class="text-end">
-          <a
-            href="{{ url_for('enterprise.edit_enterprise', id=ent.id) }}"
-            class="btn btn-sm btn-outline-warning me-2"
-            title="Editar"
-          >
-            <i class="fas fa-pen"></i>
-          </a>
-          {% if ent.log.enable %}
-          <form
-            action="{{ url_for('enterprise.delete_enterprise', id=ent.id) }}"
-            method="post"
-            class="d-inline"
-          >
-            <button
-              type="submit"
-              class="btn btn-sm btn-outline-danger"
-              title="Deshabilitar"
-              onclick="return confirm('¿Deseas deshabilitar esta empresa?')"
-            >
-              <i class="fas fa-trash"></i>
-            </button>
-          </form>
-          {% else %}
-          <form
-            action="{{ url_for('enterprise.reset_enterprise', id=ent.id) }}"
-            method="post"
-            class="d-inline"
-          >
-            <button
-              type="submit"
-              class="btn btn-sm btn-outline-success"
-              title="Reactivar"
-            >
-              <i class="fas fa-undo"></i>
-            </button>
-          </form>
-          <form
-            action="{{ url_for('enterprise.permanent_delete_enterprise', id=ent.id) }}"
-            method="post"
-            class="d-inline"
-          >
-            <button
-              type="submit"
-              class="btn btn-sm btn-outline-dark"
-              title="Eliminar definitivamente"
-              onclick="return confirm('¿Estás seguro que deseas eliminar esta empresa para siempre?')"
-            >
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </form>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Nombre</th>
+          <th>Municipio</th>
+          <th>Cadena de Valor</th>
+          <th>Tipo</th>
+          <th>Código Externo</th>
+          <th>Latitud</th>
+          <th>Longitud</th>
+          <th>Estado</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ent in enterprises %}
+        <tr>
+          <td>{{ ent.name }}</td>
+          <td>{{ ent.adm2_id.name if ent.adm2_id else 'Sin municipio' }}</td>
+          <td>
+            {% if ent.value_chain %}
+            {% if ent.value_chain.name == 'CACAO' %}
+            <span class="badge bg-warning text-dark">Cacao</span>
+            {% elif ent.value_chain.name == 'LIVESTOCK' %}
+            <span class="badge bg-info text-dark">Ganadería</span>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+            {% else %}
+            <span class="badge bg-secondary">Sin asignar</span>
+            {% endif %}
+          </td>
+          <td>{{ ent.type_enterprise.name if ent.type_enterprise else '' }}</td>
+          <td>{{ ent.ext_id[0].ext_code if ent.ext_id else '' }}</td>
+          <td>{{ ent.latitude }}</td>
+          <td>{{ ent.longitud }}</td>
+          <td>
+            {% set is_enabled = ent.log.enable if (ent.log and ent.log.enable is not none) else True %}
+            <span class="badge {% if is_enabled %}bg-success{% else %}bg-danger{% endif %}">
+              {{ 'Habilitado' if is_enabled else 'Deshabilitado' }}
+            </span>
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('enterprise.edit_enterprise', id=ent.id) }}" class="btn btn-sm btn-outline-warning me-1"
+              title="Editar">
+              <i class="fas fa-pen"></i>
+            </a>
+            {% if is_enabled %}
+            <form action="{{ url_for('enterprise.delete_enterprise', id=ent.id) }}" method="post" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Deshabilitar"
+                onclick="return confirm('¿Deseas deshabilitar esta empresa?')">
+                <i class="fas fa-trash"></i>
+              </button>
+            </form>
+            {% else %}
+            <form action="{{ url_for('enterprise.reset_enterprise', id=ent.id) }}" method="post" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-outline-success" title="Reactivar">
+                <i class="fas fa-undo"></i>
+              </button>
+            </form>
+            <form action="{{ url_for('enterprise.permanent_delete_enterprise', id=ent.id) }}" method="post"
+              class="d-inline">
+              <button type="submit" class="btn btn-sm btn-outline-dark" title="Eliminar definitivamente"
+                onclick="return confirm('¿Estás seguro que deseas eliminar esta empresa para siempre?')">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- Paginación -->
+  {% if total_pages > 1 %}
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('enterprise.list_enterprise', page=page-1, q=search) }}">Anterior</a>
+      </li>
+      <li class="page-item disabled">
+        <span class="page-link">Página {{ page }} de {{ total_pages }}</span>
+      </li>
+      <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('enterprise.list_enterprise', page=page+1, q=search) }}">Siguiente</a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+
   {% else %}
-  <div class="alert alert-info">No hay empresas registradas.</div>
+  <div class="alert alert-info">No hay empresas registradas o la búsqueda no arrojó resultados.</div>
   {% endif %}
 </div>
 
 <!-- Modal: Agregar Empresa -->
-{% include 'enterprise/add.html' %} {% endblock %}
+{% include 'enterprise/add.html' %}
+
+{% if show_modal %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var addModal = new bootstrap.Modal(document.getElementById('addEnterpriseModal'));
+    addModal.show();
+  });
+</script>
+{% endif %}
+{% endblock %}

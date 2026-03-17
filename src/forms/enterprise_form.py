@@ -4,6 +4,7 @@ from wtforms.validators import DataRequired, Length, NumberRange
 from ganabosques_orm.collections.adm2 import Adm2
 from ganabosques_orm.enums.label import Label
 from ganabosques_orm.enums.typeenterprise import TypeEnterprise
+from ganabosques_orm.enums.valuechain import ValueChain
 
 class EnterpriseForm(FlaskForm):
     name = StringField(
@@ -37,6 +38,12 @@ class EnterpriseForm(FlaskForm):
         'Tipo de Empresa',
         coerce=str,
         validators=[DataRequired(message='Debes seleccionar un tipo de empresa.')]
+    )
+
+    value_chain = SelectField(
+        'Cadena de Valor',
+        coerce=str,
+        validators=[DataRequired(message='Debes seleccionar una cadena de valor.')]
     )
 
     latitude = FloatField(
@@ -73,4 +80,9 @@ class EnterpriseForm(FlaskForm):
     def load_type_enterprise_choices(self):
         self.type_enterprise.choices = [('', '--- Selecciona un tipo de empresa ---')] + [
             (t.name, t.name) for t in TypeEnterprise
+        ]
+
+    def load_value_chain_choices(self):
+        self.value_chain.choices = [('', '--- Selecciona una cadena de valor ---')] + [
+            (vc.name, 'Cacao' if vc.name == 'CACAO' else ('Ganadería' if vc.name == 'LIVESTOCK' else vc.value)) for vc in ValueChain
         ]

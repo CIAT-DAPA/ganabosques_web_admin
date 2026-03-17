@@ -26,10 +26,34 @@ def list_adm2():
             flash('Municipio creado correctamente.', 'success')
             return redirect(url_for('adm2.list_adm2'))
 
-    adm2_list = Adm2.objects(log__enable=True)
-    return render_template('adm2/list.html', adm2=adm2_list, form=form)
+    query_str = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    offset = (page - 1) * per_page
+    
+    query = Adm2.objects()
 
+    if query_str:
+        query = query.filter(__raw__={
+            "$or": [
+                {"name": {"$regex": query_str, "$options": "i"}},
+                {"ext_id": {"$regex": query_str, "$options": "i"}}
+            ]
+        })
 
+    total = query.count()
+    adm2_list = query.order_by('-id').skip(offset).limit(per_page).select_related()
+    total_pages = (total + per_page - 1) // per_page
+
+    return render_template(
+        'adm2/list.html', 
+        adm2=adm2_list, 
+        form=form,
+        page=page,
+        total_pages=total_pages,
+        search=query_str,
+        total=total
+    )
 
 @adm2_bp.route('/adm2/edit/<string:id>', methods=['GET', 'POST'])
 def edit_adm2(id):

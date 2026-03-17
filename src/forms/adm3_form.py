@@ -20,6 +20,7 @@ class Adm3Form(FlaskForm):
     adm2_id = SelectField(
         'Municipio (Adm2)',
         coerce=str,  # MongoEngine usa ObjectId, pero FlaskForm recibe str
+        validate_choice=False,  # Las opciones se cargan dinámicamente por JS
         validators=[DataRequired(message='Debes seleccionar un municipio.')]
     )
 
