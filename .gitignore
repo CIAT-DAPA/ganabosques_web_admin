@@ -57,3 +57,5 @@ yarn.lock
 
 # Archivos de migración (si usas Flask-Migrate)
 migrations/
+
+uploaded_files
