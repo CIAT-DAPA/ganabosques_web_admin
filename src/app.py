@@ -26,6 +26,7 @@ from routes.enterprise_routes import enterprise_bp
 from routes.configuration_routes import configuration_bp
 from routes.adm_import import adm_bp
 from routes.user_routes import user_bp
+from routes.role_routes import role_bp
 
 oauth_service = OAuthService()
 
@@ -68,6 +69,7 @@ app.register_blueprint(enterprise_bp)
 app.register_blueprint(configuration_bp)
 app.register_blueprint(adm_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(role_bp)
 
 @app.before_request
 def require_login():

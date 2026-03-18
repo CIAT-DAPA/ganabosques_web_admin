@@ -17,6 +17,12 @@ if os.getenv('DEBUG', 'true').lower() == 'true':
     config['GEOSERVER_URL'] = 'http://localhost:8600/geoserver/rest/'
     config['API_BASE_URL'] = 'http://127.0.0.1:8000'
 
+    # GeoServer para mosaicos de deforestación
+    config['URL_GEO'] = 'http://localhost:8600/geoserver'
+    config['GEO_USER'] = 'admin'
+    config['GEO_PWD'] = 'geoserver'
+    config['GEO_WORKSPACE'] = 'deforestation'
+
     # Keycloak desarrollo
     config['KEYCLOAK_SERVER_URL'] = 'http://localhost:8080'
     config['KEYCLOAK_REALM'] = 'GanaBosques'
@@ -36,6 +42,12 @@ else:
     config['GEOSERVER_PWD'] = os.getenv('GEOSERVER_PWD')
     config['GEOSERVER_URL'] = os.getenv('GEOSERVER_URL')
     config['API_BASE_URL'] = os.getenv('API_BASE_URL')
+
+    # GeoServer para mosaicos de deforestación
+    config['URL_GEO'] = os.getenv('URL_GEO', os.getenv('GEOSERVER_URL', ''))
+    config['GEO_USER'] = os.getenv('GEO_USER', os.getenv('GEOSERVER_USER', ''))
+    config['GEO_PWD'] = os.getenv('GEO_PWD', os.getenv('GEOSERVER_PWD', ''))
+    config['GEO_WORKSPACE'] = os.getenv('GEO_WORKSPACE', 'deforestation')
 
     # Keycloak producción
     config['KEYCLOAK_SERVER_URL'] = os.getenv('KEYCLOAK_SERVER_URL')

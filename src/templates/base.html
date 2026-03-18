@@ -331,8 +331,20 @@
           </a>
         </div>
       </div>
-      <a class="nav-link {% if active_page == 'users' %}active{% endif %}" href="{{ url_for('user.list_users') }}"><i
-          class="fa-solid fa-user-gear"></i><span>Gestión de Usuarios</span></a>
+      <div class="nav-item">
+        <a class="nav-link {% if active_page in ['users', 'roles'] %}active{% endif %}" data-bs-toggle="collapse"
+          href="#usersSubmenu" role="button" aria-expanded="true" aria-controls="usersSubmenu">
+          <i class="fa-solid fa-user-gear"></i><span>Gestión de Usuarios</span>
+        </a>
+        <div class="submenu collapse {% if active_page in ['users', 'roles'] %}show{% endif %}" id="usersSubmenu">
+          <a class="nav-link {% if active_page == 'users' %}active{% endif %}" href="{{ url_for('user.list_users') }}">
+            <span style="margin-left: 20px">Usuarios</span>
+          </a>
+          <a class="nav-link {% if active_page == 'roles' %}active{% endif %}" href="{{ url_for('role.list_roles') }}">
+            <span style="margin-left: 20px">Roles</span>
+          </a>
+        </div>
+      </div>
     </nav>
   </nav>
 
@@ -383,8 +395,16 @@
           <a class="nav-link text-white ps-4 {% if active_page == 'configuration' %}active{% endif %}"
             href="{{ url_for('configuration.list_configuration') }}">Configuración</a>
         </div>
-        <a class="nav-link text-white mt-3 {% if active_page == 'users' %}active{% endif %}"
-          href="{{ url_for('user.list_users') }}"><i class="fa-solid fa-user-gear"></i> Gestión Usuarios</a>
+        <a class="nav-link text-white mt-3" data-bs-toggle="collapse" href="#usersSubmenuMobile" role="button"
+          aria-expanded="false" aria-controls="usersSubmenuMobile">
+          <i class="fa-solid fa-user-gear"></i> Gestión de Usuarios
+        </a>
+        <div class="collapse" id="usersSubmenuMobile">
+          <a class="nav-link text-white ps-4 {% if active_page == 'users' %}active{% endif %}"
+            href="{{ url_for('user.list_users') }}">Usuarios</a>
+          <a class="nav-link text-white ps-4 {% if active_page == 'roles' %}active{% endif %}"
+            href="{{ url_for('role.list_roles') }}">Roles</a>
+        </div>
       </nav>
       <hr class="bg-light" />
     </div>
@@ -402,7 +422,8 @@
       {% with messages = get_flashed_messages(with_categories=true) %} {% if
       messages %} {% for category, message in messages %} {% set icon = {
       'success': 'fa-circle-check', 'danger': 'fa-circle-xmark', 'warning':
-      'fa-triangle-exclamation', 'info': 'fa-circle-info' }[category] %}
+      'fa-triangle-exclamation', 'info': 'fa-circle-info', 'message': 'fa-circle-info' }.get(category, 'fa-circle-info')
+      %}
       <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-2" role="alert">
         <i class="fas {{ icon }} me-2"></i> {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

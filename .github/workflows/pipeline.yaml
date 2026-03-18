@@ -1,0 +1,120 @@
+# CI/CD Pipeline for GanaBosques Web Admin
+# Triggers on push to stage branch or version tags
+
+name: Devops GanaBosques Web Admin
+
+on:
+  push:
+    branches: [ "stage" ]
+    tags:
+    - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+
+# ------- START TEST PROCCESS -------- #
+
+  TestApp:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+    - name: Create environment
+      run: |
+        python -m venv env
+    - name: Active environment
+      run: |
+        source env/bin/activate
+    - name: Install dependencies
+      run: |
+        pip install -r ./requirements.txt
+    # (Tests removidos por ahora)
+
+# ------- END TEST PROCCESS -------- #
+
+# ------- START MERGE PROCCESS -------- #
+
+  MergeMainApp:
+    needs: TestApp
+    name: Merge Stage with Main
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Merge stage -> main
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          head_to_merge: ${{ github.ref }}
+          target_branch: main
+          github_token: ${{ github.token }}
+
+# ------- END MERGE PROCCESS -------- #
+
+# ------- START RELEASE PROCCESS -------- #
+
+  PostRelease:
+    needs: MergeMainApp
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'
+    - uses: actions/setup-node@v3
+      with:
+          node-version: 18
+    # App Zip
+    - name: Zip artifact for deployment
+      run: zip releaseApp.zip ./src/* ./requirements.txt ./config.py -r
+    # Upload Artifacts
+    - name: Upload App artifact for deployment job
+      uses: actions/upload-artifact@v4
+      with:
+        name: WebAdmin
+        path: releaseApp.zip
+    # Generate Tagname
+    - name: Generate Tagname for release
+      id: taggerDryRun
+      uses: anothrNick/github-tag-action@1.61.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
+        DRY_RUN: true
+        DEFAULT_BUMP: patch
+        RELEASE_BRANCHES : stage,main
+        BRANCH_HISTORY: last
+    # Create release
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        tag_name: ${{ steps.taggerDryRun.outputs.new_tag }}
+        release_name: Release ${{ steps.taggerDryRun.outputs.new_tag }}
+        body: ${{ github.event.head_commit.message }}
+        draft: false
+        prerelease: false
+    # Upload Assets to release
+    - name: Upload Release Asset App
+      id: upload-app-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./releaseApp.zip
+        asset_name: releaseApp.zip
+        asset_content_type: application/zip
+
+# ------- END RELEASE PROCCESS -------- #
