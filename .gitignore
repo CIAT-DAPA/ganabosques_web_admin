@@ -1,0 +1,61 @@
+# Entorno virtual
+env/
+venv/
+ENV/
+.venv/
+.env/
+.python-version
+
+# Data
+data/
+geoserver/
+
+# Archivos de configuración de entorno
+.env
+*.env.*
+
+# Archivos Python compilados
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de logs y base de datos
+*.log
+*.sqlite3
+*.db
+
+# Directorios temporales
+tmp/
+temp/
+.cache/
+coverage/
+dist/
+build/
+instance/
+
+# Archivos de pruebas
+.pytest_cache/
+.tox/
+.nox/
+
+# Configuración de IDEs y editores
+.vscode/
+.idea/
+*.swp
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de despliegue u ocultos
+*.bak
+*.orig
+
+# Archivos de frontend si aplica
+node_modules/
+npm-debug.log
+yarn.lock
+
+# Archivos de migración (si usas Flask-Migrate)
+migrations/
+
+uploaded_files

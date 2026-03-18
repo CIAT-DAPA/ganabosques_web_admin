@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>GanaBosques — Administración</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, rgba(15, 32, 39, 0.75) 0%, rgba(32, 58, 67, 0.7) 40%, rgba(44, 83, 100, 0.65) 100%),
+        url('/static/img/login_bg.png') center/cover no-repeat fixed;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Animated background shapes */
+    .bg-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .bg-shapes span {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.06;
+      background: #fff;
+      animation: float 20s infinite ease-in-out;
+    }
+
+    .bg-shapes span:nth-child(1) {
+      width: 400px;
+      height: 400px;
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+
+    .bg-shapes span:nth-child(2) {
+      width: 300px;
+      height: 300px;
+      bottom: -80px;
+      right: -80px;
+      animation-delay: 5s;
+    }
+
+    .bg-shapes span:nth-child(3) {
+      width: 200px;
+      height: 200px;
+      top: 40%;
+      left: 60%;
+      animation-delay: 10s;
+    }
+
+    .bg-shapes span:nth-child(4) {
+      width: 150px;
+      height: 150px;
+      top: 20%;
+      right: 20%;
+      animation-delay: 15s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) scale(1);
+      }
+
+      50% {
+        transform: translateY(-30px) scale(1.05);
+      }
+    }
+
+    /* Main content */
+    .main-wrapper {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .welcome-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 3.5rem 3rem;
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+      animation: cardAppear 0.8s ease-out;
+    }
+
+    @keyframes cardAppear {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .welcome-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #43cea2, #185a9d);
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.8rem;
+      box-shadow: 0 8px 32px rgba(67, 206, 162, 0.3);
+    }
+
+    .welcome-icon i {
+      font-size: 2rem;
+      color: #fff;
+    }
+
+    .welcome-card h1 {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.9rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .welcome-card .subtitle {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 1rem;
+      font-weight: 400;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .welcome-card .highlight {
+      color: #43cea2;
+      font-weight: 600;
+    }
+
+    /* Flash messages */
+    .flash-container {
+      margin-bottom: 1.5rem;
+    }
+
+    .flash-container .alert {
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+    }
+
+    /* Login button */
+    .btn-login {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, #43cea2, #185a9d);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(67, 206, 162, 0.3);
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(67, 206, 162, 0.45);
+      color: #fff;
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-login i {
+      font-size: 1.1rem;
+    }
+
+    .login-hint {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 0.82rem;
+      margin-top: 1.2rem;
+    }
+
+    .login-hint i {
+      margin-right: 4px;
+    }
+
+    /* Features strip */
+    .features {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 2.2rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .feature-item i {
+      color: #43cea2;
+      font-size: 0.9rem;
+    }
+
+    /* Footer */
+    .footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 1.5rem;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 576px) {
+      .welcome-card {
+        padding: 2.5rem 1.5rem;
+        border-radius: 18px;
+      }
+
+      .welcome-card h1 {
+        font-size: 1.5rem;
+      }
+
+      .features {
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Animated background -->
+  <div class="bg-shapes">
+    <span></span><span></span><span></span><span></span>
+  </div>
+
+  <div class="main-wrapper">
+    <div class="welcome-card">
+      <!-- Icon -->
+      <div class="welcome-icon">
+        <i class="fa-solid fa-leaf"></i>
+      </div>
+
+      <!-- Title -->
+      <h1>Bienvenido a <span class="highlight">GanaBosques</span></h1>
+      <p class="subtitle">
+        Sistema de administración y monitoreo para la gestión ganadera y forestal sostenible
+      </p>
+
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <!-- Login button -->
+      <a href="{{ url_for('home_bp.login_keycloak') }}" class="btn-login">
+        <i class="fas fa-sign-in-alt"></i>
+        Iniciar Sesión
+      </a>
+
+
+
+      <!-- Feature strip -->
+      <div class="features">
+        <div class="feature-item">
+          <i class="fas fa-map-location-dot"></i> Datos Espaciales
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-chart-line"></i> Monitoreo
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-users-gear"></i> Gestión
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2025 GanaBosques — Alliance of Bioversity International & CIAT
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

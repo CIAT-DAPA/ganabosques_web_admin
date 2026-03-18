@@ -4,33 +4,42 @@
 <div class="container py-4">
     <div class="card shadow-sm">
         <div class="card-body">
-            <h2 class="mb-3">Importar Archivos</h2>
-
-            <!-- Mensajes de feedback al usuario -->
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <div class="alert alert-info">
-                        {% for message in messages %}
-                            <div>{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
-
-            <!-- Formulario con selección de tipo de archivo -->
-            <form method="post" enctype="multipart/form-data">
+            <h2 class="mb-3">Manejo de datos espaciales</h2>
+            <form method="post" enctype="multipart/form-data" id="upload-form">
                 <div class="mb-3">
                     <label class="form-label">Selecciona el tipo de archivo:</label>
-                    <select class="form-select" name="file_type" required>
+                    <select class="form-select" name="file_type" id="file_type" required>
                         <option value="">-- Selecciona Tipo --</option>
-                        <option value="deforestation">Deforestation Annual</option>
-                        <option value="administrative_risk">Administrative Risk Annual</option>
+                        <option value="deforestation_smbyc">Deforestación SMBYC</option>
+                        <option value="deforestation_nad">Núcleos Activos de Deforestación (NAD)</option>
+                        <option value="deforestation_atd">Alertas Tempranas de Deforestación (ATD)</option>
+                        <option value="veredas">Polígonos de veredas (ADM3)</option>
+                        <option value="adm2">Polígonos de municipios (ADM2)</option>
+                        <option value="adm1">Polígonos de departamentos (ADM1)</option>
+                        <option value="upra">Fronteras agronómicas UPRA</option>
+                        <option value="protected_areas">Áreas protegidas PNN</option>
                     </select>
                 </div>
 
+                <!-- Campos adicionales para levels_adm -->
+                <div id="extra-fields_admlevels" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Nivel administrativo a importar:</label>
+                        <select class="form-select" name="level" id="level">
+                            <option value="todo">Todo</option>
+                            <option value="departamento">Departamentos</option>
+                            <option value="municipio">Municipios</option>
+                            <option value="vereda">Veredas</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="mb-3">
-                    <label class="form-label">Selecciona el archivo:</label>
-                    <input class="form-control" type="file" name="file" required>
+                    <label class="form-label" id="file-label">Selecciona el archivo:</label>
+                    <input class="form-control" type="file" name="file" id="file-input" required>
+                    <div class="form-text" id="file-hint" style="display: none;">
+                        Sube un archivo <strong>.zip</strong> que contenga los archivos TIFF de deforestación.
+                    </div>
                 </div>
 
                 <button class="btn btn-primary w-100">Subir Archivo</button>
@@ -38,4 +47,93 @@
         </div>
     </div>
 </div>
+
+<div id="loader" style="display: none;">
+    <div class="spinner"></div>
+    <p>Importando datos, por favor espera...</p>
+</div>
+
+<style>
+    #loader {
+        position: fixed;
+        z-index: 10000;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.85);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .spinner {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3498db;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tipoSelect = document.getElementById("file_type");
+        const extraFieldsadm = document.getElementById("extra-fields_admlevels");
+        const form = document.getElementById("upload-form");
+        const loader = document.getElementById("loader");
+        const fileHint = document.getElementById("file-hint");
+        const fileLabel = document.getElementById("file-label");
+        const fileInput = document.getElementById("file-input");
+
+        const deforestationTypes = [
+            'deforestation_smbyc',
+            'deforestation_nad',
+            'deforestation_atd'
+        ];
+
+        tipoSelect.addEventListener("change", function () {
+            const isDeforestation = deforestationTypes.includes(this.value);
+            extraFieldsadm.style.display = this.value === "levels_adm" ? "block" : "none";
+
+            if (isDeforestation) {
+                fileHint.style.display = "block";
+                fileLabel.textContent = "Selecciona el archivo ZIP con los TIFFs:";
+                fileInput.setAttribute("accept", ".zip");
+            } else {
+                fileHint.style.display = "none";
+                fileLabel.textContent = "Selecciona el archivo:";
+                fileInput.removeAttribute("accept");
+            }
+        });
+
+        form.addEventListener("submit", function (e) {
+            loader.style.display = "flex";
+            const isDeforestation = deforestationTypes.includes(tipoSelect.value);
+
+            if (isDeforestation) {
+                const file = fileInput.files[0];
+                if (file && !file.name.toLowerCase().endsWith('.zip')) {
+                    alert("El archivo debe ser un .zip que contenga los archivos TIFF.");
+                    loader.style.display = "none";
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
