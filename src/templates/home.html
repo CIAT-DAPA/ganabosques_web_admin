@@ -1,42 +1,139 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container py-4">
+<style>
+    /* Imagen banner mejorada */
+    .container.py-5 .text-center.mb-5 img {
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Título con estilo */
+    .container.py-5 h2.fw-bold {
+        color: #1a1a2e;
+        letter-spacing: -0.02em;
+    }
+
+    /* Cards con estilo moderno */
+    .container.py-5 .card {
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .container.py-5 .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        border-color: #43cea2;
+    }
+
+    /* Iconos con gradiente */
+    .container.py-5 .display-6 {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+        font-size: 1.4rem;
+        color: #fff;
+    }
+
+    .container.py-5 .row.justify-content-center .col-md-4:nth-child(1) .display-6 {
+        background: linear-gradient(135deg, #43cea2, #2d9b73);
+    }
+
+    .container.py-5 .row.justify-content-center .col-md-4:nth-child(2) .display-6 {
+        background: linear-gradient(135deg, #185a9d, #1e6bb8);
+    }
+
+    .container.py-5 .row.justify-content-center .col-md-4:nth-child(3) .display-6 {
+        background: linear-gradient(135deg, #f7971e, #de751f);
+    }
+
+    .container.py-5 .row:last-of-type .col-12 .display-6 {
+        background: linear-gradient(135deg, #7b4397, #6441a5);
+    }
+
+    /* Títulos de cards */
+    .container.py-5 .card-title {
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    .container.py-5 .card-text {
+        color: #6c757d;
+        line-height: 1.5;
+    }
+</style>
+<div class="container py-5">
     <div class="text-center mb-4">
-        <h1>Bienvenido a GanaBosques Web Admin</h1>
-        <p class="lead">Selecciona una opción administrativa para continuar.</p>
+        <h2 class="fw-bold">GanaBosques Admin</h2>
+        <p class="lead text-muted">Gestiona todos los parámetros de Ganabosques desde este sistema y explora los módulos
+            disponibles a continuación.</p>
     </div>
-    <div class="row g-3">
-        <div class="col-md-6 col-lg-4">
-            <a href="{{ url_for('upload_file') }}" class="text-decoration-none">
-                <div class="card shadow-sm">
-                    <div class="card-body text-center">
-                        📥 Importar Archivos
+
+    <!-- Imagen destacada -->
+    <div class="text-center mb-5">
+        <!--<img src="{{ url_for('static', filename='img/banner_vacas.png') }}" class="img-fluid rounded shadow-sm" alt="Banner ganado">-->
+        <img src="{{ url_for('static', filename='img/banner_vacas.png') }}" class="img-fluid rounded shadow-sm"
+            alt="Banner ganado" style="height: 315px; object-fit: cover; width: 100%;">
+    </div>
+
+    <!-- Primera fila: 3 boxes -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-4">
+            <a href="{{ url_for('spatial.upload_file') }}" class="text-decoration-none text-dark">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="display-6 mb-2"><i class="fa-solid fa-download"></i></div>
+                        <h5 class="card-title">Importar Datos Espaciales</h5>
+                        <p class="card-text small">Carga archivos de datos al sistema para su procesamiento, análisis o
+                            visualización posterior.</p>
                     </div>
                 </div>
             </a>
         </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    🔧 Gestión Usuarios
+        <div class="col-md-4">
+            <a href="" class="text-decoration-none text-dark"></a>
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body">
+                    <div class="display-6 mb-2"><i class="fa-solid fa-user-gear"></i></div>
+                    <h5 class="card-title">Gestión de Usuarios</h5>
+                    <p class="card-text small">Administra los perfiles, permisos y accesos de los usuarios registrados
+                        en la plataforma.</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    🗺️ Mapas y Capas
+        <div class="col-md-4">
+            <a href="{{ url_for('suppliers.importar_proveedores') }}" class="text-decoration-none text-dark">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="display-6 mb-2"><i class="fa-solid fa-truck-fast"></i></div>
+                        <h5 class="card-title">Importar Proveedores</h5>
+                        <p class="card-text small">importa y administra los códigos de proveedores asociados a fincas y
+                            años específicos para facilitar el monitoreo.</p>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    📊 Reportes
+    </div>
+
+    <!-- Segunda fila: 1 box de ancho completo -->
+    <div class="row">
+        <div class="col-12">
+            <a href="" class="text-decoration-none text-dark"></a>
+            <div class="card h-100 shadow-sm text-center">
+                <div class="card-body">
+                    <div class="display-6 mb-2"><i class="fa-solid fa-pen-to-square"></i> </div>
+                    <h5 class="card-title">Gestión de Datos</h5>
+                    <p class="card-text small">Organiza y actualiza la jerarquía territorial del país a nivel de
+                        departamentos, municipios y veredas para estructurar correctamente tus análisis.</p>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}

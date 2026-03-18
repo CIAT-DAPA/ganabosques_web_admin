@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Configuraciones{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Configuraciones</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addConfigurationModal">
+      <i class="fas fa-plus"></i> Agregar Configuración
+    </button>
+  </div>
+
+  {% if configurations %}
+  <table class="table table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Nombre</th>
+        <th>URL</th>
+        <th>Extensión</th>
+        <th>Estado</th>
+        <th class="text-end">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cfg in configurations %}
+      <tr>
+        <td>{{ cfg.name }}</td>
+        <td>
+          {% for param in cfg.parameters %}
+            {% if param.key == 'url' %}
+              {{ param.value }}
+            {% endif %}
+          {% endfor %}
+        </td>
+        <td>
+          {% for param in cfg.parameters %}
+            {% if param.key == 'extension' %}
+              {{ param.value }}
+            {% endif %}
+          {% endfor %}
+        </td>
+        <td>{{ 'Habilitada' if cfg.log.enable else 'Deshabilitada' }}</td>
+        <td class="text-end">
+          <!-- Botón Editar -->
+          <a href="{{ url_for('configuration.edit_configuration', id=cfg.id) }}" class="btn btn-sm btn-outline-warning me-2">
+            <i class="fas fa-edit"></i>
+          </a>
+
+          <!-- Botón Borrar Definitivo -->
+          <form action="{{ url_for('configuration.delete_configuration', id=cfg.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar permanentemente esta configuración?');">
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+              <i class="fas fa-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="alert alert-info">No hay configuraciones registradas.</div>
+  {% endif %}
+</div>
+
+<!-- Modal: Agregar Configuración -->
+<div class="modal fade" id="addConfigurationModal" tabindex="-1" aria-labelledby="addConfigurationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ url_for('configuration.list_configuration') }}" class="modal-content">
+      {{ form.hidden_tag() }}
+      <div class="modal-header">
+        <h5 class="modal-title" id="addConfigurationModalLabel">Agregar Configuración</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          {{ form.name.label(class="form-label") }}
+          {{ form.name(class="form-control") }}
+          {% for error in form.name.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.url.label(class="form-label") }}
+          {{ form.url(class="form-control") }}
+          <div class="form-text">Ejemplo: https://bart.ideam.gov.co/smbyc/...</div>
+          {% for error in form.url.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.extension.label(class="form-label") }}
+          {{ form.extension(class="form-select") }}
+          <div class="form-text">Solo se permiten archivos .img o .tiff</div>
+          {% for error in form.extension.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+        </div>
+
+        <div class="form-check mb-3">
+          {{ form.enable(class="form-check-input") }}
+          {{ form.enable.label(class="form-check-label") }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        {{ form.submit(class="btn btn-primary") }}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // JS adicional si se necesita
+</script>
+{% endblock %}

@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block title %}Veredas (ADM3){% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Veredas (ADM3) <span class="badge bg-secondary fs-6">{{ total }} total</span></h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAdm3Modal">
+      <i class="fas fa-plus"></i> Agregar
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <form method="GET" action="{{ url_for('adm3.list_adm3') }}" class="mb-4 d-flex gap-2">
+    <input type="text" name="q" class="form-control" placeholder="Buscar por nombre de vereda..." value="{{ search }}">
+    <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+    {% if search %}
+    <a href="{{ url_for('adm3.list_adm3') }}" class="btn btn-outline-danger">Limpiar</a>
+    {% endif %}
+  </form>
+
+  {% if adm3 %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Label Completo</th>
+          <th>Nombre</th>
+          <th>Ext ID</th>
+          <th>Municipio (Adm2)</th>
+          <th>Estado</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for adm in adm3 %}
+        <tr>
+          <td><small class="text-muted">{{ adm.label or 'N/A' }}</small></td>
+          <td class="fw-bold">{{ adm.name }}</td>
+          <td>{{ adm.ext_id }}</td>
+          <td>{{ adm.adm2_id.name if adm.adm2_id else 'Sin municipio' }}</td>
+          <td>
+            {% set is_enabled = adm.log.enable if (adm.log and adm.log.enable is not none) else True %}
+            <span class="badge {% if is_enabled %}bg-success{% else %}bg-danger{% endif %}">
+              {{ 'Habilitado' if is_enabled else 'Deshabilitado' }}
+            </span>
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('adm3.edit_adm3', id=adm.id) }}" class="btn btn-sm btn-outline-warning me-1"
+              title="Editar">
+              <i class="fas fa-pen"></i>
+            </a>
+            {% if is_enabled %}
+            <a href="{{ url_for('adm3.delete_adm3', id=adm.id) }}" class="btn btn-sm btn-outline-danger"
+              title="Deshabilitar">
+              <i class="fas fa-trash"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for('adm3.reset_adm3', id=adm.id) }}" class="btn btn-sm btn-outline-success"
+              title="Reactivar">
+              <i class="fas fa-undo"></i>
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  {% if total_pages > 1 %}
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('adm3.list_adm3', page=page-1, q=search) }}">Anterior</a>
+      </li>
+      <li class="page-item disabled">
+        <span class="page-link">Página {{ page }} de {{ total_pages }}</span>
+      </li>
+      <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('adm3.list_adm3', page=page+1, q=search) }}">Siguiente</a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="alert alert-info">No se encontraron veredas.</div>
+  {% endif %}
+</div>
+
+<!-- Modal: Agregar Vereda -->
+<div class="modal fade" id="addAdm3Modal" tabindex="-1" aria-labelledby="addAdm3Label" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" class="modal-content">
+      {{ form.hidden_tag() }}
+      <div class="modal-header">
+        <h5 class="modal-title" id="addAdm3Label">Agregar Vereda (ADM3)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          {{ form.name.label(class="form-label") }}
+          {{ form.name(class="form-control", required=True) }}
+          {% for error in form.name.errors %}
+          <div class="text-danger">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="mb-3">
+          {{ form.ext_id.label(class="form-label") }}
+          {{ form.ext_id(class="form-control", required=True, type="number") }}
+          {% for error in form.ext_id.errors %}
+          <div class="text-danger">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Departamento (ADM1)</label>
+          <select id="adm1-select-add" class="form-select" required>
+            <option value="">-- Seleccionar departamento --</option>
+            {% for adm1 in adm1_list %}
+            <option value="{{ adm1.id }}">{{ adm1.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          {{ form.adm2_id.label(class="form-label") }}
+          <select name="adm2_id" id="adm2-select-add" class="form-select" required>
+            <option value="">-- Primero selecciona un departamento --</option>
+          </select>
+          {% for error in form.adm2_id.errors %}
+          <div class="text-danger">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="form-check mb-3">
+          {{ form.enable(class="form-check-input") }}
+          {{ form.enable.label(class="form-check-label") }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Agregar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Cascading dropdown: Departamento -> Municipio
+  function setupCascadingDropdown(adm1SelectId, adm2SelectId, preselectedAdm2) {
+    const adm1Select = document.getElementById(adm1SelectId);
+    const adm2Select = document.getElementById(adm2SelectId);
+
+    if (!adm1Select || !adm2Select) return;
+
+    adm1Select.addEventListener('change', function () {
+      const adm1Id = this.value;
+      adm2Select.innerHTML = '<option value="">Cargando...</option>';
+
+      if (!adm1Id) {
+        adm2Select.innerHTML = '<option value="">-- Primero selecciona un departamento --</option>';
+        return;
+      }
+
+      fetch(`/api/adm2-by-adm1/${adm1Id}`)
+        .then(res => res.json())
+        .then(data => {
+          adm2Select.innerHTML = '<option value="">-- Seleccionar municipio --</option>';
+          data.forEach(adm2 => {
+            const opt = document.createElement('option');
+            opt.value = adm2.id;
+            opt.textContent = adm2.name;
+            if (preselectedAdm2 && adm2.id === preselectedAdm2) {
+              opt.selected = true;
+            }
+            adm2Select.appendChild(opt);
+          });
+        })
+        .catch(() => {
+          adm2Select.innerHTML = '<option value="">Error al cargar municipios</option>';
+        });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    setupCascadingDropdown('adm1-select-add', 'adm2-select-add', null);
+  });
+</script>
+{% endblock %}

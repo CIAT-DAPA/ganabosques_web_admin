@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% block title %}Crear Usuario{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Crear Nuevo Usuario</h2>
+        <a href="{{ url_for('user.list_users') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al listado
+        </a>
+    </div>
+
+    <form method="POST" id="createUserForm">
+        <div class="card mb-4">
+            <div class="card-header"><strong>Información Básica</strong></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" name="username" class="form-control" required placeholder="ej: jsmith">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Correo electrónico <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control" required
+                            placeholder="ej: jsmith@example.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="firstName" class="form-control" placeholder="ej: Juan">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Apellido</label>
+                        <input type="text" name="lastName" class="form-control" placeholder="ej: Smith">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Contraseña <span class="text-danger">*</span></label>
+                        <input type="password" name="password" id="passwordInput" class="form-control" required
+                            placeholder="Ingresa la contraseña">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
+                        <input type="password" id="confirmPasswordInput" class="form-control" required
+                            placeholder="Repítela">
+                        <div class="invalid-feedback" id="passwordError">Las contraseñas no coinciden.</div>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input type="checkbox" name="admin" class="form-check-input" id="adminCheck">
+                            <label class="form-check-label" for="adminCheck">
+                                <strong>¿Es administrador?</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Roles y Permisos</strong>
+                <div class="d-flex gap-2">
+                    <select id="existingRoleSelect" class="form-select form-select-sm" style="max-width: 250px;">
+                        <option value="">-- Seleccionar rol existente --</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-success" id="addExistingRoleBtn">
+                        <i class="fas fa-plus"></i> Añadir Seleccionado
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addRoleBtn">
+                        <i class="fas fa-plus"></i> Crear Nuevo Rol
+                    </button>
+                </div>
+            </div>
+            <div class="card-body" id="rolesContainer">
+                <div class="text-muted text-center" id="noRolesMsg">
+                    <i class="fas fa-info-circle"></i> No hay roles asignados. Haz clic en "Agregar Rol" para comenzar.
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden input para enviar los roles como JSON -->
+        <input type="hidden" name="roles_data" id="rolesDataInput">
+
+        <div class="d-flex gap-2 mb-4">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Crear Usuario
+            </button>
+            <a href="{{ url_for('user.list_users') }}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const ACTIONS = {{ actions_enum | tojson }};
+    const OPTIONS = {{ options_enum | tojson }};
+    const AVAILABLE_ROLES = {{ available_roles_json | safe }};
+
+    let rolesData = [];
+    let roleCounter = 0;
+
+    function populateExistingRolesDropdown() {
+        const select = document.getElementById('existingRoleSelect');
+        // Clear except first option
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+
+        // Filter out roles already added
+        const currentRoleNames = rolesData.map(r => r.name);
+        const rolesToShow = AVAILABLE_ROLES.filter(r => !currentRoleNames.includes(r.name));
+
+        rolesToShow.forEach(role => {
+            const opt = document.createElement('option');
+            opt.value = role.name;
+            opt.textContent = role.name;
+            select.appendChild(opt);
+        });
+    }
+
+    function renderRoles() {
+        const container = document.getElementById('rolesContainer');
+        const noMsg = document.getElementById('noRolesMsg');
+
+        // Limpiar roles existentes (no el noMsg)
+        container.querySelectorAll('.role-card').forEach(el => el.remove());
+
+        if (rolesData.length === 0) {
+            noMsg.style.display = 'block';
+            return;
+        }
+        noMsg.style.display = 'none';
+
+        rolesData.forEach((role, rIdx) => {
+            const card = document.createElement('div');
+            card.className = 'card mb-3 border-start border-4 border-primary role-card';
+
+            let actionsHtml = '';
+            role.actions.forEach((action, aIdx) => {
+                const optionsHtml = OPTIONS.map(opt => {
+                    const checked = action.options.includes(opt.name) ? 'checked' : '';
+                    return `<div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" ${checked}
+            onchange="toggleOption(${rIdx}, ${aIdx}, '${opt.name}', this.checked)"
+            id="opt-${rIdx}-${aIdx}-${opt.name}">
+          <label class="form-check-label small" for="opt-${rIdx}-${aIdx}-${opt.name}">${opt.value}</label>
+        </div>`;
+                }).join('');
+
+                actionsHtml += `
+        <div class="d-flex align-items-start gap-2 mb-2 ms-3 p-2 bg-light rounded">
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-info text-dark">${action.label}</span>
+              <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeAction(${rIdx}, ${aIdx})">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="ms-2">${optionsHtml}</div>
+          </div>
+        </div>`;
+            });
+
+            // Dropdown de acciones disponibles (excluyendo las ya agregadas)
+            const usedActions = role.actions.map(a => a.name);
+            const availableActions = ACTIONS.filter(a => !usedActions.includes(a.name));
+            let addActionHtml = '';
+            if (availableActions.length > 0) {
+                const optionsForSelect = availableActions.map(a => `<option value="${a.name}">${a.value}</option>`).join('');
+                addActionHtml = `
+        <div class="d-flex gap-2 ms-3 mt-2">
+          <select class="form-select form-select-sm" id="actionSelect-${rIdx}" style="max-width: 250px;">
+            <option value="">-- Agregar acción --</option>
+            ${optionsForSelect}
+          </select>
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="addAction(${rIdx})">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>`;
+            }
+
+            card.innerHTML = `
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-shield-alt text-primary"></i>
+            <input type="text" class="form-control form-control-sm" value="${role.name}" 
+              placeholder="Nombre del rol" style="max-width: 250px;"
+              onchange="updateRoleName(${rIdx}, this.value)">
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRole(${rIdx})">
+            <i class="fas fa-trash-alt"></i> Eliminar Rol
+          </button>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted"><strong>Acciones:</strong></small>
+        </div>
+        ${actionsHtml || '<div class="text-muted small ms-3">Sin acciones asignadas</div>'}
+        ${addActionHtml}
+      </div>`;
+
+            container.appendChild(card);
+        });
+
+        populateExistingRolesDropdown();
+    }
+
+    function addRole() {
+        roleCounter++;
+        rolesData.push({
+            name: `Rol ${roleCounter}`,
+            actions: []
+        });
+        renderRoles();
+    }
+
+    function removeRole(rIdx) {
+        rolesData.splice(rIdx, 1);
+        renderRoles();
+    }
+
+    function updateRoleName(rIdx, name) {
+        rolesData[rIdx].name = name;
+        populateExistingRolesDropdown();
+    }
+
+    function addAction(rIdx) {
+        const select = document.getElementById(`actionSelect-${rIdx}`);
+        const actionName = select.value;
+        if (!actionName) return;
+
+        const actionObj = ACTIONS.find(a => a.name === actionName);
+        rolesData[rIdx].actions.push({
+            name: actionName,
+            label: actionObj.value,
+            options: [] // Empezar sin opciones seleccionadas
+        });
+        renderRoles();
+    }
+
+    function removeAction(rIdx, aIdx) {
+        rolesData[rIdx].actions.splice(aIdx, 1);
+        renderRoles();
+    }
+
+    function toggleOption(rIdx, aIdx, optName, checked) {
+        const opts = rolesData[rIdx].actions[aIdx].options;
+        if (checked && !opts.includes(optName)) {
+            opts.push(optName);
+        } else if (!checked) {
+            const idx = opts.indexOf(optName);
+            if (idx > -1) opts.splice(idx, 1);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('addRoleBtn').addEventListener('click', addRole);
+
+        document.getElementById('addExistingRoleBtn').addEventListener('click', function () {
+            const select = document.getElementById('existingRoleSelect');
+            const selectedName = select.value;
+            if (!selectedName) return;
+
+            const originalRole = AVAILABLE_ROLES.find(r => r.name === selectedName);
+            if (originalRole) {
+                // Hacemos deep copy de las acciones/opciones para que no mute el original
+                rolesData.push({
+                    name: originalRole.name,
+                    actions: JSON.parse(JSON.stringify(originalRole.actions))
+                });
+                select.value = "";
+                renderRoles();
+            }
+        });
+
+        populateExistingRolesDropdown();
+
+        const form = document.getElementById('createUserForm');
+        form.addEventListener('submit', function (e) {
+            // Validar contraseñas
+            const pass = document.getElementById('passwordInput').value;
+            const confirm = document.getElementById('confirmPasswordInput').value;
+            const errorDiv = document.getElementById('passwordError');
+
+            if (pass !== confirm) {
+                e.preventDefault();
+                errorDiv.style.display = 'block';
+                document.getElementById('confirmPasswordInput').classList.add('is-invalid');
+                return;
+            } else {
+                errorDiv.style.display = 'none';
+                document.getElementById('confirmPasswordInput').classList.remove('is-invalid');
+            }
+
+            // Serializar los roles como JSON antes de enviar
+            document.getElementById('rolesDataInput').value = JSON.stringify(rolesData);
+        });
+    });
+</script>
+{% endblock %}

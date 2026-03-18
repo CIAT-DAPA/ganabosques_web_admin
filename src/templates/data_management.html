@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Gestión de Datos de Deforestación</h2>
+  <p>
+    Este módulo verifica si existen nuevos datos en la fuente oficial del IDEAM relacionados con la cobertura boscosa natural.
+    Selecciona una configuración habilitada para buscar y descargar los datos más recientes.
+  </p>
+
+  <!-- Selección de configuración -->
+  <form id="config-selection-form">
+    <div class="mb-3">
+      <label for="config_id" class="form-label">Selecciona una configuración habilitada:</label>
+      <select name="config_id" id="config_id" class="form-select" required>
+        <option value="" disabled selected>-- Selecciona una configuración --</option>
+        {% for cfg in configurations %}
+          {% set url = cfg.parameters | selectattr('key', 'equalto', 'url') | map(attribute='value') | list | first %}
+          <option value="{{ cfg.id }}">{{ cfg.name }} — {{ url }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Botón para activar búsqueda -->
+    <button id="check-button" type="button" class="btn btn-primary mb-3" disabled>
+      <i class="fas fa-search me-2"></i>Buscar nuevos datos
+    </button>
+
+    <div id="status" class="my-3 d-none">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <span class="ms-2">Verificando nuevos datos disponibles...</span>
+    </div>
+
+    <div id="result" class="alert d-none" role="alert"></div>
+
+    <!-- Botón para descargar archivo -->
+    <div id="download-container" class="d-none mt-3">
+      <button id="download-button" type="button" class="btn btn-success">
+        <i class="fas fa-download me-2"></i>Descargar archivo
+      </button>
+    </div>
+
+    <!-- Loader de descarga -->
+    <div id="download-status" class="my-3 d-none">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Descargando...</span>
+      </div>
+      <span class="ms-2">Descargando archivo, por favor espera...</span>
+    </div>
+  </form>
+
+  <!-- Mensaje después de descarga exitosa -->
+  {% if show_import_message %}
+  <div class="alert alert-info mt-4" role="alert">
+    <strong>El archivo se ha descargado correctamente.</strong><br>
+    Ahora puedes ir al módulo <strong>Importar Datos Espaciales</strong> y subirlo en la opción <strong>Deforestación Anual</strong>.
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  const checkButton = document.getElementById('check-button');
+  const select = document.getElementById('config_id');
+  const statusDiv = document.getElementById('status');
+  const resultDiv = document.getElementById('result');
+  const downloadContainer = document.getElementById('download-container');
+  const downloadButton = document.getElementById('download-button');
+  const downloadStatus = document.getElementById('download-status');
+
+  // Activar botón solo si hay selección
+  select.addEventListener('change', function () {
+    checkButton.disabled = !select.value;
+    resultDiv.classList.add('d-none');
+    downloadContainer.classList.add('d-none');
+  });
+
+  // Buscar nuevos datos disponibles
+  checkButton.addEventListener('click', async function () {
+    if (!select.value) return;
+
+    statusDiv.classList.remove('d-none');
+    resultDiv.classList.add('d-none');
+    downloadContainer.classList.add('d-none');
+
+    try {
+      const configId = select.value;
+      const response = await fetch(`{{ url_for("datamanagement.check_new_data") }}?config_id=${configId}`);
+      const data = await response.json();
+      statusDiv.classList.add('d-none');
+
+      if (data.success) {
+        resultDiv.classList.remove('d-none', 'alert-danger');
+        resultDiv.classList.add('alert-success');
+        resultDiv.innerHTML = `<strong>Archivo disponible:</strong> ${data.latest_file}`;
+        downloadContainer.classList.remove('d-none');
+      } else {
+        resultDiv.classList.remove('d-none', 'alert-success');
+        resultDiv.classList.add('alert-danger');
+        resultDiv.textContent = data.message || 'No se encontró archivo válido.';
+      }
+    } catch (err) {
+      statusDiv.classList.add('d-none');
+      resultDiv.classList.remove('d-none', 'alert-success');
+      resultDiv.classList.add('alert-danger');
+      resultDiv.textContent = 'Error al verificar nuevos datos.';
+      console.error(err);
+    }
+  });
+
+// Descargar archivo con loader
+downloadButton?.addEventListener('click', async function () {
+  const configId = select?.value;
+  if (!configId) return;
+
+  downloadStatus.classList.remove('d-none');
+
+  try {
+    const formData = new FormData();
+    formData.append('config_id', configId);
+
+    const response = await fetch(`{{ url_for("datamanagement.download_file_route") }}`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) throw new Error("No se pudo descargar el archivo");
+
+    const blob = await response.blob();
+    const filename = response.headers.get("Content-Disposition")?.split("filename=")[1] || "archivo.tiff";
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename.replaceAll('"', '');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    // Mostrar mensaje directamente sin recargar
+    resultDiv.classList.remove('alert-danger', 'd-none');
+    resultDiv.classList.add('alert-info');
+    resultDiv.innerHTML = `
+      <strong>El archivo se ha descargado correctamente.</strong><br>
+      Ahora puedes ir al módulo <strong>Importar Datos Espaciales</strong> y subirlo en la opción <strong>Deforestación Anual</strong>.
+    `;
+
+  } catch (err) {
+    alert("⚠️ Error al descargar el archivo.");
+    console.error(err);
+  } finally {
+    downloadStatus.classList.add('d-none');
+  }
+});
+</script>
+{% endblock %}

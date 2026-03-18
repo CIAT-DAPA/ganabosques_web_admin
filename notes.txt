@@ -1,0 +1,7 @@
+# Test environment
+
+docker run -d --name ganabosques-mongo -p 27017:27017 -e MONGO_INITDB_DATABASE=ganabosques -v "D:/CIAT/Code/BID/ganabosques_web_admin/data/mongo:/data/db" mongo:4.2
+
+docker run -d -p 8600:8080 --name geoserver -e SAMPLE_DATA=false -e EXISTING_DATA_DIR=true -v "D:/CIAT/Code/BID/ganabosques_web_admin/data/geoserver:/opt/geoserver/data_dir/data/" kartoza/geoserver:latest
+
+mongorestore --gzip --drop --db ganabosques ./ganabosques

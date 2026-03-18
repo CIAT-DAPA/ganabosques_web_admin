@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% block title %}Editar Usuario{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Editar Usuario: {{ user.username }}</h2>
+        <div>
+            <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#passwordModal">
+                <i class="fas fa-key"></i> Clave de acceso
+            </button>
+            <a href="{{ url_for('user.list_users') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Modal Cambiar Contraseña -->
+    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{{ url_for('user.update_password', keycloak_id=user.id) }}"
+                    id="passwordForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="passwordModalLabel">Actualizar Clave de Acceso</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nueva Contraseña <span class="text-danger">*</span></label>
+                            <input type="password" name="new_password" id="newPasswordInput" class="form-control"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
+                            <input type="password" name="confirm_password" id="confirmNewPasswordInput"
+                                class="form-control" required>
+                            <div class="invalid-feedback" id="editPasswordError">Las contraseñas no coinciden.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Contraseña</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" id="editUserForm">
+        <div class="card mb-4">
+            <div class="card-header"><strong>Información Básica</strong></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                        <small class="text-muted">El username no se puede cambiar.</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Correo electrónico <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control" required value="{{ user.email }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="firstName" class="form-control" value="{{ user.firstName or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Apellido</label>
+                        <input type="text" name="lastName" class="form-control" value="{{ user.lastName or '' }}">
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input type="checkbox" name="admin" class="form-check-input" id="adminCheck" {% if
+                                db_user.admin %}checked{% endif %}>
+                            <label class="form-check-label" for="adminCheck">
+                                <strong>¿Es administrador?</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Roles y Permisos</strong>
+                <div class="d-flex gap-2">
+                    <select id="existingRoleSelect" class="form-select form-select-sm" style="max-width: 250px;">
+                        <option value="">-- Seleccionar rol existente --</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-success" id="addExistingRoleBtn">
+                        <i class="fas fa-plus"></i> Añadir Seleccionado
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addRoleBtn">
+                        <i class="fas fa-plus"></i> Crear Nuevo Rol
+                    </button>
+                </div>
+            </div>
+            <div class="card-body" id="rolesContainer">
+                <div class="text-muted text-center" id="noRolesMsg">
+                    <i class="fas fa-info-circle"></i> No hay roles asignados. Haz clic en "Agregar Rol" para comenzar.
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="roles_data" id="rolesDataInput">
+
+        <div class="d-flex gap-2 mb-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Cambios
+            </button>
+            <a href="{{ url_for('user.list_users') }}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const ACTIONS = {{ actions_enum | tojson }};
+    const OPTIONS = {{ options_enum | tojson }};
+    const AVAILABLE_ROLES = {{ available_roles_json | safe }};
+
+    // Cargar roles existentes
+    let rolesData = {{ existing_roles_json | safe }};
+    let roleCounter = rolesData.length;
+
+    function populateExistingRolesDropdown() {
+        const select = document.getElementById('existingRoleSelect');
+        // Clear except first option
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+
+        // Filter out roles already added
+        const currentRoleNames = rolesData.map(r => r.name);
+        const rolesToShow = AVAILABLE_ROLES.filter(r => !currentRoleNames.includes(r.name));
+
+        rolesToShow.forEach(role => {
+            const opt = document.createElement('option');
+            opt.value = role.name;
+            opt.textContent = role.name;
+            select.appendChild(opt);
+        });
+    }
+
+    function renderRoles() {
+        const container = document.getElementById('rolesContainer');
+        const noMsg = document.getElementById('noRolesMsg');
+
+        container.querySelectorAll('.role-card').forEach(el => el.remove());
+
+        if (rolesData.length === 0) {
+            noMsg.style.display = 'block';
+            return;
+        }
+        noMsg.style.display = 'none';
+
+        rolesData.forEach((role, rIdx) => {
+            const card = document.createElement('div');
+            card.className = 'card mb-3 border-start border-4 border-primary role-card';
+
+            let actionsHtml = '';
+            role.actions.forEach((action, aIdx) => {
+                const optionsHtml = OPTIONS.map(opt => {
+                    const checked = action.options.includes(opt.name) ? 'checked' : '';
+                    return `<div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" ${checked}
+            onchange="toggleOption(${rIdx}, ${aIdx}, '${opt.name}', this.checked)"
+            id="opt-${rIdx}-${aIdx}-${opt.name}">
+          <label class="form-check-label small" for="opt-${rIdx}-${aIdx}-${opt.name}">${opt.value}</label>
+        </div>`;
+                }).join('');
+
+                actionsHtml += `
+        <div class="d-flex align-items-start gap-2 mb-2 ms-3 p-2 bg-light rounded">
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-info text-dark">${action.label || action.name}</span>
+              <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeAction(${rIdx}, ${aIdx})">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="ms-2">${optionsHtml}</div>
+          </div>
+        </div>`;
+            });
+
+            const usedActions = role.actions.map(a => a.name);
+            const availableActions = ACTIONS.filter(a => !usedActions.includes(a.name));
+            let addActionHtml = '';
+            if (availableActions.length > 0) {
+                const optionsForSelect = availableActions.map(a => `<option value="${a.name}">${a.value}</option>`).join('');
+                addActionHtml = `
+        <div class="d-flex gap-2 ms-3 mt-2">
+          <select class="form-select form-select-sm" id="actionSelect-${rIdx}" style="max-width: 250px;">
+            <option value="">-- Agregar acción --</option>
+            ${optionsForSelect}
+          </select>
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="addAction(${rIdx})">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>`;
+            }
+
+            card.innerHTML = `
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-shield-alt text-primary"></i>
+            <input type="text" class="form-control form-control-sm" value="${role.name}" 
+              placeholder="Nombre del rol" style="max-width: 250px;"
+              onchange="updateRoleName(${rIdx}, this.value)">
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRole(${rIdx})">
+            <i class="fas fa-trash-alt"></i> Eliminar Rol
+          </button>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted"><strong>Acciones:</strong></small>
+        </div>
+        ${actionsHtml || '<div class="text-muted small ms-3">Sin acciones asignadas</div>'}
+        ${addActionHtml}
+      </div>`;
+
+            container.appendChild(card);
+        });
+
+        populateExistingRolesDropdown();
+    }
+
+    function addRole() {
+        roleCounter++;
+        rolesData.push({
+            name: `Rol ${roleCounter}`,
+            actions: []
+        });
+        renderRoles();
+    }
+
+    function removeRole(rIdx) {
+        rolesData.splice(rIdx, 1);
+        renderRoles();
+    }
+
+    function updateRoleName(rIdx, name) {
+        rolesData[rIdx].name = name;
+        populateExistingRolesDropdown();
+    }
+
+    function addAction(rIdx) {
+        const select = document.getElementById(`actionSelect-${rIdx}`);
+        const actionName = select.value;
+        if (!actionName) return;
+
+        const actionObj = ACTIONS.find(a => a.name === actionName);
+        rolesData[rIdx].actions.push({
+            name: actionName,
+            label: actionObj.value,
+            options: []
+        });
+        renderRoles();
+    }
+
+    function removeAction(rIdx, aIdx) {
+        rolesData[rIdx].actions.splice(aIdx, 1);
+        renderRoles();
+    }
+
+    function toggleOption(rIdx, aIdx, optName, checked) {
+        const opts = rolesData[rIdx].actions[aIdx].options;
+        if (checked && !opts.includes(optName)) {
+            opts.push(optName);
+        } else if (!checked) {
+            const idx = opts.indexOf(optName);
+            if (idx > -1) opts.splice(idx, 1);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('addRoleBtn').addEventListener('click', addRole);
+
+        document.getElementById('addExistingRoleBtn').addEventListener('click', function () {
+            const select = document.getElementById('existingRoleSelect');
+            const selectedName = select.value;
+            if (!selectedName) return;
+
+            const originalRole = AVAILABLE_ROLES.find(r => r.name === selectedName);
+            if (originalRole) {
+                rolesData.push({
+                    name: originalRole.name,
+                    actions: JSON.parse(JSON.stringify(originalRole.actions))
+                });
+                select.value = "";
+                renderRoles();
+            }
+        });
+
+        renderRoles();
+
+        document.getElementById('editUserForm').addEventListener('submit', function () {
+            document.getElementById('rolesDataInput').value = JSON.stringify(rolesData);
+        });
+
+        // Validación de contraseñas modal
+        const passForm = document.getElementById('passwordForm');
+        passForm.addEventListener('submit', function (e) {
+            const pass = document.getElementById('newPasswordInput').value;
+            const confirm = document.getElementById('confirmNewPasswordInput').value;
+            const errorDiv = document.getElementById('editPasswordError');
+
+            if (pass !== confirm) {
+                e.preventDefault();
+                errorDiv.style.display = 'block';
+                document.getElementById('confirmNewPasswordInput').classList.add('is-invalid');
+            } else {
+                errorDiv.style.display = 'none';
+                document.getElementById('confirmNewPasswordInput').classList.remove('is-invalid');
+            }
+        });
+    });
+</script>
+{% endblock %}

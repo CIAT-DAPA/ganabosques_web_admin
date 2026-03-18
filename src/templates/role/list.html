@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Roles{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Gestión de Roles <span class="badge bg-secondary fs-6">{{ roles|length }} total</span></h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createRoleModal">
+            <i class="fas fa-plus"></i> Crear Rol
+        </button>
+    </div>
+
+    {% if roles %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                    <th class="text-end">Opciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for role in roles %}
+                <tr>
+                    <td class="fw-bold">{{ role.name }}</td>
+                    <td>
+                        {% if role.actions %}
+                        {% for action in role.actions %}
+                        <div class="mb-1">
+                            <span class="badge bg-info text-dark">{{ action.label }}</span>
+                            {% if action.options %}
+                            <div class="d-flex flex-wrap gap-1 mt-1 ms-2">
+                                {% for opt in action.options %}
+                                <span class="badge bg-light text-dark border" style="font-size: 0.75em;">{{ opt
+                                    }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <span class="text-muted">Sin acciones</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-sm btn-outline-warning edit-role-btn"
+                                data-role-id="{{ role.id }}" data-bs-toggle="modal" data-bs-target="#editRoleModal">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                                data-bs-target="#deleteRoleModal-{{ role.id }}">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteRoleModal-{{ role.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirmar Eliminación</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                ¿Estás seguro de que deseas eliminar el rol <strong>{{ role.name }}</strong>?<br>
+                                <span class="text-danger small">Esta acción no se puede deshacer.</span>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary"
+                                    data-bs-dismiss="modal">Cancelar</button>
+                                <form action="{{ url_for('role.delete_role', role_id=role.id) }}" method="POST"
+                                    class="d-inline">
+                                    <button type="submit" class="btn btn-danger">Eliminar Rol</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No hay roles registrados.</div>
+    {% endif %}
+</div>
+
+<!-- Modal: Crear Rol -->
+<div class="modal fade" id="createRoleModal" tabindex="-1" aria-labelledby="createRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="{{ url_for('role.create_role') }}" class="modal-content" id="createRoleForm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createRoleModalLabel">Crear Nuevo Rol</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="create-role-name" class="form-label">Nombre del Rol</label>
+                    <input type="text" class="form-control" id="create-role-name" name="name" required>
+                </div>
+                <hr>
+                <h6>Acciones y Opciones</h6>
+                <div id="create-actions-container"></div>
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+                    onclick="addActionRow('create-actions-container')">
+                    <i class="fas fa-plus"></i> Agregar Acción
+                </button>
+                <input type="hidden" name="actions_data" id="create-actions-data">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Crear Rol</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Editar Rol -->
+<div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="" class="modal-content" id="editRoleForm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editRoleModalLabel">Editar Rol</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="edit-role-name" class="form-label">Nombre del Rol</label>
+                    <input type="text" class="form-control" id="edit-role-name" name="name" required>
+                </div>
+                <hr>
+                <h6>Acciones y Opciones</h6>
+                <div id="edit-actions-container"></div>
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+                    onclick="addActionRow('edit-actions-container')">
+                    <i class="fas fa-plus"></i> Agregar Acción
+                </button>
+                <input type="hidden" name="actions_data" id="edit-actions-data">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Datos de enums disponibles
+    const actionsEnum = {{ actions_enum | tojson }};
+    const optionsEnum = {{ options_enum | tojson }};
+
+    function addActionRow(containerId, selectedAction = '', selectedOptions = []) {
+        const container = document.getElementById(containerId);
+        const row = document.createElement('div');
+        row.className = 'border rounded p-3 mb-2 bg-light';
+
+        // Select de acción
+        let actionOptions = '<option value="">-- Selecciona una acción --</option>';
+        actionsEnum.forEach(a => {
+            const sel = a.name === selectedAction ? 'selected' : '';
+            actionOptions += `<option value="${a.name}" ${sel}>${a.value}</option>`;
+        });
+
+        // Checkboxes de opciones
+        let optionsHtml = '';
+        optionsEnum.forEach(o => {
+            const checked = selectedOptions.includes(o.name) ? 'checked' : '';
+            optionsHtml += `
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input option-check" type="checkbox" value="${o.name}" ${checked}>
+                    <label class="form-check-label">${o.value}</label>
+                </div>`;
+        });
+
+        row.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="flex-grow-1 me-2">
+                    <select class="form-select action-select">${actionOptions}</select>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.border').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="ms-2">
+                <small class="text-muted">Opciones:</small>
+                <div class="mt-1">${optionsHtml}</div>
+            </div>
+        `;
+
+        container.appendChild(row);
+    }
+
+    function collectActionsData(containerId) {
+        const container = document.getElementById(containerId);
+        const rows = container.querySelectorAll('.border');
+        const actions = [];
+
+        rows.forEach(row => {
+            const actionSelect = row.querySelector('.action-select');
+            const actionName = actionSelect?.value;
+            if (!actionName) return;
+
+            const options = [];
+            row.querySelectorAll('.option-check:checked').forEach(cb => {
+                options.push(cb.value);
+            });
+
+            actions.push({ name: actionName, options: options });
+        });
+
+        return JSON.stringify(actions);
+    }
+
+    // Manejar submit del formulario de crear
+    document.getElementById('createRoleForm').addEventListener('submit', function () {
+        document.getElementById('create-actions-data').value = collectActionsData('create-actions-container');
+    });
+
+    // Manejar submit del formulario de editar
+    document.getElementById('editRoleForm').addEventListener('submit', function () {
+        document.getElementById('edit-actions-data').value = collectActionsData('edit-actions-container');
+    });
+
+    // Cargar datos del rol al abrir modal de editar
+    document.querySelectorAll('.edit-role-btn').forEach(btn => {
+        btn.addEventListener('click', async function () {
+            const roleId = this.getAttribute('data-role-id');
+            const container = document.getElementById('edit-actions-container');
+            container.innerHTML = '';
+
+            try {
+                const resp = await fetch(`{{ url_for('role.list_roles') }}get/${roleId}`);
+                const data = await resp.json();
+
+                document.getElementById('edit-role-name').value = data.name || '';
+                document.getElementById('editRoleForm').action = `{{ url_for('role.list_roles') }}edit/${roleId}`;
+
+                if (data.actions && data.actions.length > 0) {
+                    data.actions.forEach(a => {
+                        addActionRow('edit-actions-container', a.name, a.options);
+                    });
+                }
+            } catch (err) {
+                console.error('Error cargando rol:', err);
+            }
+        });
+    });
+
+    // Limpiar modal de crear al cerrarlo
+    document.getElementById('createRoleModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('create-role-name').value = '';
+        document.getElementById('create-actions-container').innerHTML = '';
+    });
+</script>
+{% endblock %}
