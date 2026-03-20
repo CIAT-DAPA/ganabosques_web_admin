@@ -127,6 +127,14 @@ def upload_file():
                 # Publicar en GeoServer y guardar en Mongo
                 process_geoserver_mosaics(output_dir, store_name, source)
 
+                # Limpiar carpetas temporales después de subir
+                shutil.rmtree(output_dir, ignore_errors=True)
+                tmp_mosaic = os.path.join(UPLOAD_FOLDER, "tmp_mosaic")
+                zip_mosaic = os.path.join(UPLOAD_FOLDER, "zip_mosaic")
+                shutil.rmtree(tmp_mosaic, ignore_errors=True)
+                shutil.rmtree(zip_mosaic, ignore_errors=True)
+                print(f"🧹 Carpetas temporales eliminadas")
+
                 flash(f'{extracted_count} archivo(s) TIFF subidos y publicados correctamente en GeoServer.', 'success')
 
             except Exception as e:
