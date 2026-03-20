@@ -59,3 +59,5 @@ yarn.lock
 migrations/
 
 uploaded_files
+
+amdmin
