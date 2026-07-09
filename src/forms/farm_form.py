@@ -51,7 +51,7 @@ class FarmForm(FlaskForm):
 
     value_chain = SelectField(
         'Cadena de Valor',
-        choices=[('', '-- Seleccionar --'), ('CACAO', 'Cacao'), ('LIVESTOCK', 'Ganadería')],
+        choices=[('', '-- Seleccionar --'), ('CACAO', 'Cacao'), ('LIVESTOCK', 'Ganadería'), ('COFFEE', 'Café')],
         validators=[DataRequired(message='Debes seleccionar una cadena de valor.')]
     )
 
