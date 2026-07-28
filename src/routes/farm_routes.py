@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from ganabosques_orm.collections.farm import Farm
+from ganabosques_orm.collections.farmpolygons import FarmPolygons
 from ganabosques_orm.collections.adm3 import Adm3
 from ganabosques_orm.collections.adm2 import Adm2
 from ganabosques_orm.collections.adm1 import Adm1
@@ -9,6 +10,8 @@ from ganabosques_orm.enums.farmsource import FarmSource
 from ganabosques_orm.enums.source import Source
 from ganabosques_orm.enums.valuechain import ValueChain
 from src.forms.farm_form import FarmForm
+from services.farmpolygons_service import FarmPolygonService
+from datetime import datetime
 from bson import ObjectId
 
 farm_bp = Blueprint('farm', __name__)
@@ -90,6 +93,13 @@ def edit_farm(id):
     form = FarmForm()
     form.load_adm3_choices()
 
+    farm = Farm.objects.get(id=id)
+
+    farm_polygon = FarmPolygons.objects(
+        farm_id=farm,
+        log__enable=True
+    ).first()   
+
     if request.method == 'GET':
         form.adm3_id.data = str(farm.adm3_id.id) if farm.adm3_id else None
         form.farm_source.data = farm.farm_source.name
@@ -101,6 +111,9 @@ def edit_farm(id):
                 'source': ext.source.name,
                 'ext_code': ext.ext_code
             })
+        if farm_polygon:
+            form.geojson.data = farm_polygon.geojson
+
 
     if form.validate_on_submit():
         try:
@@ -114,9 +127,15 @@ def edit_farm(id):
                     ext_code=entry.form.ext_code.data
                 ) for entry in form.ext_id.entries
             ]
+            FarmPolygonService.save_new_version(
+                            farm,
+                            form.geojson.data,
+                            farm_polygon
+                        )
             if not farm.log:
                 farm.log = Log(enable=True)
             farm.log.enable = form.enable.data
+            farm.log.updated = datetime.now()
             farm.save()
             flash('Finca actualizada correctamente.', 'success')
             return redirect(url_for('farm.list_farms'))

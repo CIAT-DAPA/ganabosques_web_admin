@@ -93,6 +93,15 @@
       {{ form.enable.label(class="form-check-label") }}
     </div>
 
+    <div class="mb-3">
+      {{ form.geojson.label(class="form-label") }}
+      {{ form.geojson(class="form-control", style="font-family: monospace;") }}
+
+      {% for error in form.geojson.errors %}
+          <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
     {{ form.submit(class="btn btn-success") }}
     <a href="{{ url_for('farm.list_farms') }}" class="btn btn-outline-secondary">Cancelar</a>
   </form>
