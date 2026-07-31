@@ -1,0 +1,44 @@
+pr:
+  branches:
+    include:
+      - preprod
+
+stages:
+- stage: Test
+  displayName: "Run Tests"
+
+  jobs:
+  - job: TestApp
+    displayName: "Test App"
+
+    pool:
+      vmImage: ubuntu-latest
+
+    steps:
+
+    - checkout: self
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.11'
+      displayName: "Use Python 3.11"
+
+    - script: |
+        python -m venv env
+        source env/bin/activate
+
+        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install -r src/requirements.txt
+      displayName: 'Install dependencies'
+
+    - script: |
+        source env/bin/activate
+        python -m pytest --junitxml=test-results.xml
+      displayName: "Run unit tests"
+
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'test-results.xml'
+      displayName: "Publish test results"
