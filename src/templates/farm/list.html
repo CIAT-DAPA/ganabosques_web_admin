@@ -47,6 +47,8 @@
             <span class="badge bg-warning text-dark">Cacao</span>
             {% elif farm.value_chain and farm.value_chain.name == 'LIVESTOCK' %}
             <span class="badge bg-info text-dark">Ganadería</span>
+            {% elif farm.value_chain and farm.value_chain.name == 'COFFEE' %}
+            <span class="badge bg-success text-dark">Café</span>
             {% else %}
             <span class="text-muted">—</span>
             {% endif %}

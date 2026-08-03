@@ -12,10 +12,9 @@ geoserver/
 
 # Archivos de configuración de entorno
 .env
-*.env.*
 
 # Archivos Python compilados
-__pycache__/
+*/__pycache__/
 *.py[cod]
 *$py.class
 
