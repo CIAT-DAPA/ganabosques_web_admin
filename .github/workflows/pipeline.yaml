@@ -37,7 +37,6 @@ jobs:
         pip install -r ./src/requirements.txt
     - name: Run unit tests
       run: |
-        source env/bin/activate
         python -m pytest 
 
 # ------- END TEST PROCCESS -------- #
