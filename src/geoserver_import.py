@@ -462,13 +462,13 @@ def process_geoserver_mosaics(tif_dir: str, store_name: str, source: str):
     - Guarda registros en Mongo (colección deforestation).
     """
     try:
-        gs_url = _ensure_rest_url(config.get("URL_GEO") or "")
-        username = config.get("GEO_USER")
-        password = config.get("GEO_PWD")
+        gs_url = _ensure_rest_url(config.get("GEOSERVER_URL") or "")
+        username = config.get("GEOSERVER_USER")
+        password = config.get("GEOSERVER_PWD")
         ws_name = config.get("GEO_WORKSPACE")
 
         if not all([gs_url, username, password, ws_name]):
-            raise RuntimeError("Faltan variables en .env/config: URL_GEO, GEO_USER, GEO_PWD, GEO_WORKSPACE")
+            raise RuntimeError("Faltan variables en .env/config: GEOSERVER_URL, GEOSERVER_USER, GEOSERVER_PWD, GEO_WORKSPACE")
 
         src_lower = (source or "").lower().strip()
 

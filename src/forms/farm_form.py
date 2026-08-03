@@ -6,7 +6,8 @@ from wtforms import (
     FormField,
     SubmitField,
     BooleanField,
-    Form
+    Form,
+    TextAreaField
 )
 from wtforms.validators import DataRequired, Length
 from ganabosques_orm.collections.adm3 import Adm3
@@ -51,8 +52,19 @@ class FarmForm(FlaskForm):
 
     value_chain = SelectField(
         'Cadena de Valor',
-        choices=[('', '-- Seleccionar --'), ('CACAO', 'Cacao'), ('LIVESTOCK', 'Ganadería')],
+        choices=[('', '-- Seleccionar --'), ('CACAO', 'Cacao'), ('LIVESTOCK', 'Ganadería'), ('COFFEE', 'Café')],
         validators=[DataRequired(message='Debes seleccionar una cadena de valor.')]
+    )
+
+    geojson = TextAreaField(
+        "GeoJSON",
+        validators=[
+            DataRequired(message="El GeoJSON es obligatorio.")
+        ],
+        render_kw={
+            "rows": 12,
+            "placeholder": "Pegue aquí el GeoJSON de la finca..."
+        }
     )
 
     enable = BooleanField('¿Está habilitada?', default=True)

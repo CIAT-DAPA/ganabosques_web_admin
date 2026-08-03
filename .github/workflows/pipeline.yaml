@@ -35,7 +35,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r ./src/requirements.txt
-    # (Tests removidos por ahora)
+    - name: Run unit tests
+      run: |
+        source env/bin/activate
+        py -m pytest 
 
 # ------- END TEST PROCCESS -------- #
 
