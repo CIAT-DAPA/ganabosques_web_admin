@@ -60,7 +60,6 @@ La configuración de la aplicación se lee desde variables de entorno definidas 
 
 ### Ejemplo de archivo .env
 
-No copies credenciales reales en documentación pública. Usa valores de ejemplo y conserva los secretos reales en tu entorno local.
 
 ```env
 DEBUG=true
