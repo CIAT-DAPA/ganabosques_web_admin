@@ -38,7 +38,7 @@ jobs:
     - name: Run unit tests
       run: |
         source env/bin/activate
-        py -m pytest 
+        python -m pytest 
 
 # ------- END TEST PROCCESS -------- #
 
