@@ -37,6 +37,42 @@ def app_keycloak(make_app):
 
 
 # ---------------------------------------------------------------------------
+# extract_keycloak_error
+# ---------------------------------------------------------------------------
+
+def test_extract_error_usa_error_message_del_json():
+    respuesta = RespuestaFalsa(
+        status_code=409, payload={"errorMessage": "User exists"}, text="{...}"
+    )
+
+    assert user_routes_module.extract_keycloak_error(respuesta) == "User exists"
+
+
+def test_extract_error_cae_al_texto_si_el_json_no_trae_error_message():
+    respuesta = RespuestaFalsa(status_code=400, payload={"otra": "clave"}, text="cuerpo crudo")
+
+    assert user_routes_module.extract_keycloak_error(respuesta) == "cuerpo crudo"
+
+
+def test_extract_error_usa_el_texto_cuando_el_cuerpo_no_es_json():
+    respuesta = RespuestaFalsa(status_code=502, text="<html>Bad Gateway</html>")
+
+    assert user_routes_module.extract_keycloak_error(respuesta) == "<html>Bad Gateway</html>"
+
+
+def test_extract_error_usa_el_texto_cuando_el_json_no_es_un_objeto():
+    respuesta = RespuestaFalsa(status_code=400, payload=["lista", "inesperada"], text="crudo")
+
+    assert user_routes_module.extract_keycloak_error(respuesta) == "crudo"
+
+
+def test_extract_error_describe_el_status_si_no_hay_cuerpo():
+    respuesta = RespuestaFalsa(status_code=503, text="")
+
+    assert user_routes_module.extract_keycloak_error(respuesta) == "HTTP 503"
+
+
+# ---------------------------------------------------------------------------
 # get_keycloak_admin_token
 # ---------------------------------------------------------------------------
 
@@ -190,6 +226,22 @@ def test_create_keycloak_user_propaga_el_mensaje_de_error(app_keycloak, monkeypa
     assert error == "User exists with same username"
 
 
+def test_create_keycloak_user_con_cuerpo_no_json_conserva_el_mensaje(app_keycloak, monkeypatch):
+    monkeypatch.setattr(
+        user_routes_module.requests,
+        "post",
+        lambda url, json, headers: RespuestaFalsa(
+            status_code=502, text="<html>Bad Gateway</html>"
+        ),
+    )
+
+    with app_keycloak.app_context():
+        keycloak_id, error = user_routes_module.create_keycloak_user("token", DATOS_USUARIO)
+
+    assert keycloak_id is None
+    assert error == "<html>Bad Gateway</html>"
+
+
 def test_create_keycloak_user_captura_excepciones(app_keycloak, monkeypatch):
     def explota(url, json, headers):
         raise ConnectionError("sin red")
@@ -249,6 +301,20 @@ def test_update_keycloak_user_reporta_error_http(app_keycloak, monkeypatch):
     assert error == "correo inválido"
 
 
+def test_update_keycloak_user_con_cuerpo_no_json_conserva_el_mensaje(app_keycloak, monkeypatch):
+    monkeypatch.setattr(
+        user_routes_module.requests,
+        "put",
+        lambda url, json, headers: RespuestaFalsa(status_code=502, text="proxy sin respuesta"),
+    )
+
+    with app_keycloak.app_context():
+        exito, error = user_routes_module.update_keycloak_user("token", "u1", {"email": "a@b.c"})
+
+    assert exito is False
+    assert error == "proxy sin respuesta"
+
+
 def test_update_keycloak_user_captura_excepciones(app_keycloak, monkeypatch):
     def explota(url, json, headers):
         raise ConnectionError("sin red")
@@ -299,6 +365,22 @@ def test_update_keycloak_password_reporta_error(app_keycloak, monkeypatch):
 
     assert exito is False
     assert error == "contraseña débil"
+
+
+def test_update_keycloak_password_con_cuerpo_no_json_conserva_el_mensaje(
+    app_keycloak, monkeypatch
+):
+    monkeypatch.setattr(
+        user_routes_module.requests,
+        "put",
+        lambda url, json, headers: RespuestaFalsa(status_code=502, text="proxy sin respuesta"),
+    )
+
+    with app_keycloak.app_context():
+        exito, error = user_routes_module.update_keycloak_password("token", "u1", "Clave1")
+
+    assert exito is False
+    assert error == "proxy sin respuesta"
 
 
 # ---------------------------------------------------------------------------
@@ -354,17 +436,14 @@ def test_delete_keycloak_user_usa_el_texto_crudo_si_no_hay_errormessage(app_keyc
     assert error == "x"
 
 
-def test_delete_keycloak_user_con_cuerpo_no_json_pierde_el_mensaje_del_servidor(
+def test_delete_keycloak_user_con_cuerpo_no_json_conserva_el_mensaje_del_servidor(
     app_keycloak, monkeypatch
 ):
-    """Documenta un defecto conocido del manejo de errores.
+    """Un error con cuerpo HTML (típico de un proxy) debe llegar al usuario.
 
-    Cuando Keycloak (o un proxy intermedio) responde un error con cuerpo que no
-    es JSON —por ejemplo una página HTML—, ``resp.json()`` lanza y la excepción
-    la captura el ``except`` externo, de modo que el mensaje devuelto describe
-    el fallo al parsear y no el error real del servidor. El mismo patrón se
-    repite en ``create_keycloak_user``, ``update_keycloak_user`` y
-    ``update_keycloak_password``.
+    Antes ``resp.json()`` lanzaba y la excepción la capturaba el ``except``
+    externo, de modo que el mensaje mostrado describía el fallo al parsear en
+    lugar del error real del servidor.
     """
     monkeypatch.setattr(
         user_routes_module.requests,
@@ -376,7 +455,7 @@ def test_delete_keycloak_user_con_cuerpo_no_json_pierde_el_mensaje_del_servidor(
         exito, error = user_routes_module.delete_keycloak_user("token", "u1")
 
     assert exito is False
-    assert "Bad Gateway" not in error
+    assert error == "<html>Bad Gateway</html>"
 
 
 def test_delete_keycloak_user_captura_excepciones(app_keycloak, monkeypatch):

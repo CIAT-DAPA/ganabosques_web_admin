@@ -160,13 +160,13 @@ def test_check_external_properties_reconoce_el_formato_mensual(tmp_path, caplog)
     assert not any("No pude inferir" in registro.message for registro in caplog.records)
 
 
-def test_check_external_properties_advierte_de_mas_con_formato_diario(tmp_path, caplog):
-    r"""Documenta un defecto conocido de la cadena if/else del módulo.
+def test_check_external_properties_reconoce_el_formato_diario_sin_advertir(tmp_path, caplog):
+    r"""Un timeregex válido para YYYYMMDD no debe disparar ninguna advertencia.
 
-    El ``else`` que emite "No pude inferir el formato" cuelga de la comprobación
-    de ``\d{6}`` y no de la de ``\d{8}``, de modo que un timeregex correcto para
-    YYYYMMDD dispara a la vez el mensaje de compatibilidad y la advertencia de
-    formato desconocido. El aviso es ruido, no un error de configuración.
+    Antes el ``else`` de "No pude inferir el formato" colgaba de la comprobación
+    de ``\d{6}`` en vez de cerrar la cadena completa, así que un archivo correcto
+    recibía a la vez el mensaje de compatibilidad y el aviso de formato
+    desconocido.
     """
     caplog.set_level(logging.INFO, logger="src.geoserver_import")
     carpeta = _crear_properties(tmp_path / "props", timeregex=TIMEREGEX_OK)
@@ -175,7 +175,32 @@ def test_check_external_properties_advierte_de_mas_con_formato_diario(tmp_path, 
 
     mensajes = [registro.message for registro in caplog.records]
     assert any("compatible con YYYYMMDD" in mensaje for mensaje in mensajes)
+    assert not any("No pude inferir" in mensaje for mensaje in mensajes)
+
+
+def test_check_external_properties_advierte_si_no_reconoce_el_formato(tmp_path, caplog):
+    caplog.set_level(logging.INFO, logger="src.geoserver_import")
+    carpeta = _crear_properties(tmp_path / "props", timeregex="regex=cualquier-cosa\n")
+
+    geoserver_module._check_external_properties(carpeta)
+
+    mensajes = [registro.message for registro in caplog.records]
     assert any("No pude inferir" in mensaje for mensaje in mensajes)
+    assert not any("parece compatible" in mensaje for mensaje in mensajes)
+
+
+def test_check_external_properties_prefiere_el_formato_mas_especifico(tmp_path, caplog):
+    """Con ambos patrones presentes gana YYYYMMDD y solo se emite un mensaje."""
+    caplog.set_level(logging.INFO, logger="src.geoserver_import")
+    carpeta = _crear_properties(
+        tmp_path / "props", timeregex="regex=\\d{8}\n# alterno: \\d{6}\n"
+    )
+
+    geoserver_module._check_external_properties(carpeta)
+
+    mensajes = [registro.message for registro in caplog.records]
+    assert any("compatible con YYYYMMDD" in mensaje for mensaje in mensajes)
+    assert not any("compatible con YYYYMM." in mensaje for mensaje in mensajes)
 
 
 # ---------------------------------------------------------------------------
