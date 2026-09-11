@@ -34,6 +34,28 @@ def get_keycloak_admin_token():
         return None
 
 
+def extract_keycloak_error(resp):
+    """Obtiene el mensaje de error legible de una respuesta fallida de Keycloak.
+
+    Keycloak responde normalmente un JSON con la clave 'errorMessage', pero un
+    proxy o balanceador intermedio puede devolver HTML o texto plano. En ese
+    caso se usa el cuerpo tal cual en lugar de dejar que falle el parseo, que
+    es lo que antes hacía perder el motivo real del fallo.
+    """
+    if not resp.text:
+        return f'HTTP {resp.status_code}'
+
+    try:
+        payload = resp.json()
+    except Exception:
+        return resp.text
+
+    if isinstance(payload, dict):
+        return payload.get('errorMessage', resp.text)
+
+    return resp.text
+
+
 def get_keycloak_user_by_id(token, user_id):
     """Obtiene un usuario de Keycloak por su ID."""
     server_url = current_app.config.get('KEYCLOAK_SERVER_URL')
@@ -176,7 +198,7 @@ def create_keycloak_user(token, user_data):
             logger.info(f"Usuario creado en Keycloak con ID: {keycloak_id}")
             return keycloak_id, None
         else:
-            error_msg = resp.json().get('errorMessage', resp.text) if resp.text else f'HTTP {resp.status_code}'
+            error_msg = extract_keycloak_error(resp)
             logger.error(f"Error creando usuario en Keycloak: {error_msg}")
             return None, error_msg
     except Exception as e:
@@ -317,7 +339,7 @@ def update_keycloak_user(token, user_id, user_data):
         if resp.status_code == 204:
             return True, None
         else:
-            error_msg = resp.json().get('errorMessage', resp.text) if resp.text else f'HTTP {resp.status_code}'
+            error_msg = extract_keycloak_error(resp)
             return False, error_msg
     except Exception as e:
         logger.error(f"Error actualizando usuario {user_id} en Keycloak: {e}")
@@ -344,7 +366,7 @@ def update_keycloak_password(token, user_id, new_password):
         if resp.status_code == 204:
             return True, None
         else:
-            error_msg = resp.json().get('errorMessage', resp.text) if resp.text else f'HTTP {resp.status_code}'
+            error_msg = extract_keycloak_error(resp)
             return False, error_msg
     except Exception as e:
         logger.error(f"Error actualizando contraseña para {user_id}: {e}")
@@ -516,7 +538,7 @@ def delete_keycloak_user(token, user_id):
         if resp.status_code == 204:
             return True, None
         else:
-            error_msg = resp.json().get('errorMessage', resp.text) if resp.text else f'HTTP {resp.status_code}'
+            error_msg = extract_keycloak_error(resp)
             return False, error_msg
     except Exception as e:
         logger.error(f"Error eliminando usuario {user_id} de Keycloak: {e}")

@@ -36,6 +36,9 @@ instance/
 .pytest_cache/
 .tox/
 .nox/
+.coverage
+.coverage.*
+htmlcov/
 
 # Configuración de IDEs y editores
 .vscode/

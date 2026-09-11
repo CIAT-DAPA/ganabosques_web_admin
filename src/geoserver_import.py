@@ -79,13 +79,14 @@ def _check_external_properties(props_dir: str):
         )
     else:
         # Si detectamos \d{8} es buena señal para YYYYMMDD
-        if re.search(r"\\d\{8\}", trg_txt) or re.search(r"\d{8}", trg_txt):
+        tiene_yyyymmdd = re.search(r"\\d\{8\}", trg_txt) or re.search(r"\d{8}", trg_txt)
+        # Si detectamos \d{6} es buena señal para YYYYMM
+        tiene_yyyymm = re.search(r"\\d\{6\}", trg_txt) or re.search(r"\d{6}", trg_txt)
+
+        if tiene_yyyymmdd:
             log_print(logger, "[GeoServer] timeregex.properties parece compatible con YYYYMMDD.")
-
-        # Si detectamos \d{8} es buena señal para YYYYMM
-        if re.search(r"\\d\{6\}", trg_txt) or re.search(r"\d{6}", trg_txt):
+        elif tiene_yyyymm:
             log_print(logger, "[GeoServer] timeregex.properties parece compatible con YYYYMM.")
-
         else:
             log_print(
                 logger,
